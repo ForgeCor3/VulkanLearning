@@ -1,7 +1,8 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#ifndef TRIANGLEAPP_H
+#define TRIANGLEAPP_H
 
-#include <iostream>
+#include "extensions.h"
+
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
@@ -31,9 +32,19 @@ private:
 	void cleanUp();
 
 	bool checkValidationLayerSupport();
-	void createInstance();
+	std::vector<const char*> getRequiredExtensions();
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData);
 	
+	void createInstance();
+	void setupDebugMessenger();
 
 	GLFWwindow* window;
 	VkInstance instance;
+	VkDebugUtilsMessengerEXT debugMessenger;
 };
+
+#endif //TRIANGLEAPP_H

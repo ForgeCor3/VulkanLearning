@@ -16,6 +16,7 @@ link_directories(02_TriangleApp
 )
 
 add_executable(02_TriangleApp
+    src/extensions.cpp
     src/TriangleApp.cpp
     src/main.cpp
 )
