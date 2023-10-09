@@ -132,16 +132,44 @@ void TriangleApp::pickPhysicalDevise()
 	}
 }
 
-bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevice)
+bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice)
 {
 	VkPhysicalDeviceProperties deviceProperties;
 	VkPhysicalDeviceFeatures deviceFeatures;
 
-	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-	vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
-
+	vkGetPhysicalDeviceProperties(_physicalDevice, &deviceProperties);
+	vkGetPhysicalDeviceFeatures(_physicalDevice, &deviceFeatures);
+	
+	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
+	std::cout << indices.graphicsFamily.has_value() << std::endl;
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-		deviceFeatures.geometryShader;
+			deviceFeatures.geometryShader &&
+			indices.isComplete();
+}
+
+TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevise)
+{
+	TriangleApp::QueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevise, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevise, &queueFamilyCount, queueFamilies.data());
+
+	int i = 0;
+	for(const auto& queueFamily : queueFamilies)
+	{
+		if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			indices.graphicsFamily = i;
+		
+		if(indices.isComplete())
+			break;
+
+		i++;
+	}
+
+	return indices;
 }
 
 void TriangleApp::createInstance()

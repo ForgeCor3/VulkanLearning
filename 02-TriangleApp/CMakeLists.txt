@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.27.0)
 
+set (CMAKE_CXX_STANDARD 17)
+
 project(02_TriangleApp)
 
 include_directories(02_TriangleApp

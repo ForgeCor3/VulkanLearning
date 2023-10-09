@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <optional>
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -26,6 +27,12 @@ public:
 	void run();
 
 private:
+	struct QueueFamilyIndices
+	{
+		std::optional<uint32_t> graphicsFamily;
+		bool isComplete() {return graphicsFamily.has_value();}
+	};
+
 	void initWindow();
 	void initVulkan();
 	void mainLoop();
@@ -39,9 +46,11 @@ private:
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-	
+
 	void pickPhysicalDevise();
-	bool isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevise);
+	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevise);
+
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevise);
 
 	void createInstance();
 	void setupDebugMessenger();
