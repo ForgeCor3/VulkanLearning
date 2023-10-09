@@ -47,7 +47,7 @@ private:
 		void* pUserData);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-	void pickPhysicalDevise();
+	void pickPhysicalDevice();
 	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevise);
 
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevise);
@@ -58,7 +58,8 @@ private:
 	GLFWwindow* window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice physicalDevise = VK_NULL_HANDLE;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	VkDevice logicalDevice;
 };
 
 #endif //TRIANGLEAPP_H

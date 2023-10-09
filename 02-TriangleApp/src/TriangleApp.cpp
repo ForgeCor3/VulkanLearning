@@ -22,7 +22,7 @@ void TriangleApp::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
-	pickPhysicalDevise();
+	pickPhysicalDevice();
 }
 
 void TriangleApp::mainLoop()
@@ -109,7 +109,7 @@ void TriangleApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateIn
 	createInfo.pfnUserCallback = debugCallback;
 }
 
-void TriangleApp::pickPhysicalDevise()
+void TriangleApp::pickPhysicalDevice()
 {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -117,14 +117,14 @@ void TriangleApp::pickPhysicalDevise()
 	if(deviceCount == 0)
 		throw std::runtime_error("Failed to find GPUs with Vulkan support.");
 	
-	std::vector<VkPhysicalDevice> physicalDevises(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevises.data());
+	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
 
-	for(const auto& device : physicalDevises)
+	for(const auto& device : physicalDevices)
 	{
 		if(isPhysicalDeviceSuitable(device))
 		{
-			physicalDevise = device;
+			physicalDevice = device;
 			break;
 		}
 		else
@@ -147,15 +147,15 @@ bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice)
 			indices.isComplete();
 }
 
-TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevise)
+TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevice)
 {
 	TriangleApp::QueueFamilyIndices indices;
 
 	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevise, &queueFamilyCount, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, nullptr);
 
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevise, &queueFamilyCount, queueFamilies.data());
+	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, queueFamilies.data());
 
 	int i = 0;
 	for(const auto& queueFamily : queueFamilies)
