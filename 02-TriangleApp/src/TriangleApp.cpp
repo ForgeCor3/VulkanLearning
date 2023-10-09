@@ -22,6 +22,7 @@ void TriangleApp::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
+	pickPhysicalDevise();
 }
 
 void TriangleApp::mainLoop()
@@ -108,10 +109,45 @@ void TriangleApp::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateIn
 	createInfo.pfnUserCallback = debugCallback;
 }
 
+void TriangleApp::pickPhysicalDevise()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+	if(deviceCount == 0)
+		throw std::runtime_error("Failed to find GPUs with Vulkan support.");
+	
+	std::vector<VkPhysicalDevice> physicalDevises(deviceCount);
+	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevises.data());
+
+	for(const auto& device : physicalDevises)
+	{
+		if(isPhysicalDeviceSuitable(device))
+		{
+			physicalDevise = device;
+			break;
+		}
+		else
+			throw std::runtime_error("Failed to find a suitable physical device.");
+	}
+}
+
+bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevice)
+{
+	VkPhysicalDeviceProperties deviceProperties;
+	VkPhysicalDeviceFeatures deviceFeatures;
+
+	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+	vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+
+	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+		deviceFeatures.geometryShader;
+}
+
 void TriangleApp::createInstance()
 {
 	if(enableValidationLayers && !checkValidationLayerSupport())
-		throw std::runtime_error("Validation layers requested, but not available");
+		throw std::runtime_error("Validation layers requested, but not available.");
 
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -145,7 +181,7 @@ void TriangleApp::createInstance()
 	}
 
 	if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-		throw std::runtime_error("Failed to create instance");
+		throw std::runtime_error("Failed to create instance.");
 }
 
 void TriangleApp::setupDebugMessenger()
@@ -157,5 +193,5 @@ void TriangleApp::setupDebugMessenger()
 	populateDebugMessengerCreateInfo(createInfo);
 
 	if(extensions::CreateDebugUtilsMessengetEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
-		throw std::runtime_error("Failed to set up debug messenger");
+		throw std::runtime_error("Failed to set up debug messenger.");
 }

@@ -40,12 +40,16 @@ private:
 		void* pUserData);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	
+	void pickPhysicalDevise();
+	bool isPhysicalDeviceSuitable(VkPhysicalDevice physicalDevise);
+
 	void createInstance();
 	void setupDebugMessenger();
 
 	GLFWwindow* window;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	VkPhysicalDevice physicalDevise = VK_NULL_HANDLE;
 };
 
 #endif //TRIANGLEAPP_H
