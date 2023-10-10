@@ -23,6 +23,7 @@ void TriangleApp::initVulkan()
 	createInstance();
 	setupDebugMessenger();
 	pickPhysicalDevice();
+	createLogicalDevice();
 }
 
 void TriangleApp::mainLoop()
@@ -35,6 +36,8 @@ void TriangleApp::mainLoop()
 
 void TriangleApp::cleanUp()
 {
+	vkDestroyDevice(logicalDevice, nullptr);
+
 	if(enableValidationLayers)
 		extensions::DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
@@ -141,7 +144,6 @@ bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice)
 	vkGetPhysicalDeviceFeatures(_physicalDevice, &deviceFeatures);
 	
 	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
-	std::cout << indices.graphicsFamily.has_value() << std::endl;
 	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
 			deviceFeatures.geometryShader &&
 			indices.isComplete();
@@ -170,6 +172,40 @@ TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice 
 	}
 
 	return indices;
+}
+
+void TriangleApp::createLogicalDevice()
+{
+	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+	float queuePriority = 1.0f;
+
+	VkDeviceQueueCreateInfo queueCreateInfo {};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+	queueCreateInfo.queueCount = 1;
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	VkPhysicalDeviceFeatures physicalDeviceFeatures {};
+
+	VkDeviceCreateInfo createInfo {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pEnabledFeatures = &physicalDeviceFeatures;
+	createInfo.enabledExtensionCount = 0;
+
+	if(enableValidationLayers)
+	{
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
+	else
+		createInfo.enabledLayerCount = 0;
+
+	if(vkCreateDevice(physicalDevice, &createInfo, nullptr, &logicalDevice) != VK_SUCCESS)
+		throw std::runtime_error("Failed to create logical device.");
+
+	vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
 }
 
 void TriangleApp::createInstance()

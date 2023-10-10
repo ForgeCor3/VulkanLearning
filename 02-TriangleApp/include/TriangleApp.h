@@ -49,8 +49,9 @@ private:
 
 	void pickPhysicalDevice();
 	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevise);
-
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevise);
+
+	void createLogicalDevice();
 
 	void createInstance();
 	void setupDebugMessenger();
@@ -60,6 +61,7 @@ private:
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice logicalDevice;
+	VkQueue graphicsQueue;
 };
 
 #endif //TRIANGLEAPP_H
