@@ -22,6 +22,7 @@ void TriangleApp::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
+	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 }
@@ -41,6 +42,7 @@ void TriangleApp::cleanUp()
 	if(enableValidationLayers)
 		extensions::DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -159,11 +161,16 @@ TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice 
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, queueFamilies.data());
 
+	VkBool32 presentSupport = false;
 	int i = 0;
 	for(const auto& queueFamily : queueFamilies)
 	{
 		if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			indices.graphicsFamily = i;
+		
+		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, i, surface, &presentSupport);
+		if(presentSupport)
+			indices.presentFamily = i;
 		
 		if(indices.isComplete())
 			break;
@@ -177,20 +184,29 @@ TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice 
 void TriangleApp::createLogicalDevice()
 {
 	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+
 	float queuePriority = 1.0f;
 
-	VkDeviceQueueCreateInfo queueCreateInfo {};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-	queueCreateInfo.queueCount = 1;
-	queueCreateInfo.pQueuePriorities = &queuePriority;
+	for(uint32_t queueFamily : uniqueQueueFamilies)
+	{
+		VkDeviceQueueCreateInfo queueCreateInfo {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFamily;
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
 
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
+	
 	VkPhysicalDeviceFeatures physicalDeviceFeatures {};
 
 	VkDeviceCreateInfo createInfo {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = &queueCreateInfo;
-	createInfo.queueCreateInfoCount = 1;
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
+	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pEnabledFeatures = &physicalDeviceFeatures;
 	createInfo.enabledExtensionCount = 0;
 
@@ -206,6 +222,7 @@ void TriangleApp::createLogicalDevice()
 		throw std::runtime_error("Failed to create logical device.");
 
 	vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
 }
 
 void TriangleApp::createInstance()
@@ -246,6 +263,12 @@ void TriangleApp::createInstance()
 
 	if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create instance.");
+}
+
+void TriangleApp::createSurface()
+{
+	if(glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+		throw std::runtime_error("Failed to create window surface.");
 }
 
 void TriangleApp::setupDebugMessenger()

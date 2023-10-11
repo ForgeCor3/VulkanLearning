@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <vector>
 #include <optional>
+#include <set>
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -30,7 +31,8 @@ private:
 	struct QueueFamilyIndices
 	{
 		std::optional<uint32_t> graphicsFamily;
-		bool isComplete() {return graphicsFamily.has_value();}
+		std::optional<uint32_t> presentFamily;
+		bool isComplete() {return graphicsFamily.has_value() && presentFamily.has_value();}
 	};
 
 	void initWindow();
@@ -54,14 +56,17 @@ private:
 	void createLogicalDevice();
 
 	void createInstance();
+	void createSurface();
 	void setupDebugMessenger();
 
 	GLFWwindow* window;
 	VkInstance instance;
+	VkSurfaceKHR surface;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice logicalDevice;
 	VkQueue graphicsQueue;
+	VkQueue presentQueue;
 };
 
 #endif //TRIANGLEAPP_H
