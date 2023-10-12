@@ -51,36 +51,38 @@ private:
 	void mainLoop();
 	void cleanUp();
 
+	void createInstance();
+
 	bool checkValidationLayerSupport();
 	std::vector<const char*> getRequiredExtensions();
+
+	void pickPhysicalDevice();
+	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
+
+	void createLogicalDevice();
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice);
+
+	void createSurface();
+	
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-
-	void pickPhysicalDevice();
-	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
-
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice);
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice);
-
-	void createLogicalDevice();
-
-	void createInstance();
-	void createSurface();
 	void setupDebugMessenger();
 
 	GLFWwindow* window;
+
 	VkInstance instance;
-	VkSurfaceKHR surface;
-	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice logicalDevice;
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
+	VkSurfaceKHR surface;
+	VkDebugUtilsMessengerEXT debugMessenger;
 };
 
 #endif //TRIANGLEAPP_H
