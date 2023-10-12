@@ -139,16 +139,33 @@ void TriangleApp::pickPhysicalDevice()
 
 bool TriangleApp::isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice)
 {
-	VkPhysicalDeviceProperties deviceProperties;
-	VkPhysicalDeviceFeatures deviceFeatures;
-
-	vkGetPhysicalDeviceProperties(_physicalDevice, &deviceProperties);
-	vkGetPhysicalDeviceFeatures(_physicalDevice, &deviceFeatures);
-	
 	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
-	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-			deviceFeatures.geometryShader &&
-			indices.isComplete();
+
+	bool swapChainAdequate = false;
+
+	if(checkDeviceExtensionSupport(_physicalDevice))
+	{
+		TriangleApp::SwapChainSupportDetails swapChainSupport = querySwapChainSupport(_physicalDevice);
+		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+	}
+
+	return (indices.isComplete() && swapChainAdequate);
+}
+
+bool TriangleApp::checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice)
+{
+	uint32_t extensionCount;
+	vkEnumerateDeviceExtensionProperties(_physicalDevice, nullptr, &extensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(_physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+
+	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+	for(const auto& extension : availableExtensions)
+		requiredExtensions.erase(extension.extensionName);
+
+	return requiredExtensions.empty();
 }
 
 TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevice)
@@ -181,6 +198,31 @@ TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice 
 	return indices;
 }
 
+TriangleApp::SwapChainSupportDetails TriangleApp::querySwapChainSupport(VkPhysicalDevice _physicalDevice)
+{
+	TriangleApp::SwapChainSupportDetails details;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, surface, &details.capabilities);
+
+	uint32_t formatCount = 0;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &formatCount, nullptr);
+	if(!formatCount == 0)
+	{
+		details.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &formatCount, details.formats.data());
+	}
+
+	uint32_t modeCount = 0;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &modeCount, nullptr);
+	if(!modeCount == 0)
+	{
+		details.presentModes.resize(modeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &modeCount, details.presentModes.data());
+	}
+
+	return details;
+}
+
 void TriangleApp::createLogicalDevice()
 {
 	TriangleApp::QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -208,7 +250,8 @@ void TriangleApp::createLogicalDevice()
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pEnabledFeatures = &physicalDeviceFeatures;
-	createInfo.enabledExtensionCount = 0;
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 	if(enableValidationLayers)
 	{
