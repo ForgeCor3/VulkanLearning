@@ -8,6 +8,8 @@
 #include <vector>
 #include <optional>
 #include <set>
+#include <limits>
+#include <algorithm>
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -23,8 +25,8 @@ const std::vector<const char*> deviceExtensions = {
 	const bool enableValidationLayers = true;
 #endif
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+const uint32_t WIDTH = 1280;
+const uint32_t HEIGHT = 720;
 
 class TriangleApp
 {
@@ -53,19 +55,6 @@ private:
 
 	void createInstance();
 
-	bool checkValidationLayerSupport();
-	std::vector<const char*> getRequiredExtensions();
-
-	void pickPhysicalDevice();
-	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
-
-	void createLogicalDevice();
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice);
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice);
-
-	void createSurface();
-	
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -74,15 +63,34 @@ private:
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void setupDebugMessenger();
 
+	bool checkValidationLayerSupport();
+	std::vector<const char*> getRequiredExtensions();
+
+	void createSurface();
+
+	void pickPhysicalDevice();
+	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
+
+	void createLogicalDevice();
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice);
+	
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	void createSwapChain();
+
 	GLFWwindow* window;
 
 	VkInstance instance;
+	VkDebugUtilsMessengerEXT debugMessenger;
+	VkSurfaceKHR surface;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice logicalDevice;
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
-	VkSurfaceKHR surface;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VkSwapchainKHR swapChain;
 };
 
 #endif //TRIANGLEAPP_H
