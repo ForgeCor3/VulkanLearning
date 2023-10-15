@@ -10,6 +10,7 @@
 #include <set>
 #include <limits>
 #include <algorithm>
+#include <fstream>
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -81,6 +82,11 @@ private:
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	void createSwapChain();
 	void createSwapChainImageViews();
+
+	void createGraphicsPipeline();
+	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
+
+	std::vector<char> readFile(const std::string& fileName);
 
 	GLFWwindow* window;
 
