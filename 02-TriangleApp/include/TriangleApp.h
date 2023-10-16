@@ -83,8 +83,10 @@ private:
 	void createSwapChain();
 	void createSwapChainImageViews();
 
+	void createRenderPass();
+
 	void createGraphicsPipeline();
-	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
+	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
 	std::vector<char> readFile(const std::string& fileName);
 
@@ -102,6 +104,9 @@ private:
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
 	std::vector<VkImageView> swapChainImageViews;
+	VkRenderPass renderPass;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
 };
 
 #endif //TRIANGLEAPP_H
