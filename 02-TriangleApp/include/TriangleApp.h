@@ -91,6 +91,10 @@ private:
 
 	void createFramebuffers();
 
+	void createCommandPool();
+	void createCommandBuffer();
+	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
+
 	GLFWwindow* window;
 
 	VkInstance instance;
@@ -109,6 +113,8 @@ private:
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
 };
 
 #endif //TRIANGLEAPP_H
