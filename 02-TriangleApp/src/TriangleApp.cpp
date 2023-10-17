@@ -640,3 +640,8 @@ std::vector<char> TriangleApp::readFile(const std::string& fileName)
 
 	return buffer;
 }
+
+void TriangleApp::createFramebuffers()
+{
+	
+}

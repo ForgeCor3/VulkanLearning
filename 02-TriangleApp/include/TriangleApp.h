@@ -84,11 +84,12 @@ private:
 	void createSwapChainImageViews();
 
 	void createRenderPass();
-
 	void createGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
 	std::vector<char> readFile(const std::string& fileName);
+
+	void createFramebuffers();
 
 	GLFWwindow* window;
 
