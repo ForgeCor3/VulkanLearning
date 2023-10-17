@@ -41,6 +41,9 @@ void TriangleApp::mainLoop()
 
 void TriangleApp::cleanUp()
 {
+	for(auto framebuffer : swapChainFramebuffers)
+		vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+
 	vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
 	vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
@@ -643,5 +646,22 @@ std::vector<char> TriangleApp::readFile(const std::string& fileName)
 
 void TriangleApp::createFramebuffers()
 {
-	
+	swapChainFramebuffers.resize(swapChainImageViews.size());
+
+	for(int i = 0; i < swapChainImageViews.size(); ++i)
+	{
+		VkImageView attachments[] = {swapChainImageViews[i]};
+
+		VkFramebufferCreateInfo framebufferCreateInfo {};
+		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCreateInfo.renderPass = renderPass;
+		framebufferCreateInfo.attachmentCount = 1;
+		framebufferCreateInfo.pAttachments = attachments;
+		framebufferCreateInfo.width = swapChainExtent.width;
+		framebufferCreateInfo.height = swapChainExtent.height;
+		framebufferCreateInfo.layers = 1;
+
+		if(vkCreateFramebuffer(logicalDevice, &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+			throw std::runtime_error("Failed to create framebuffer."); 
+	}
 }

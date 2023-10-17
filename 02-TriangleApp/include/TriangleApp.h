@@ -108,6 +108,7 @@ private:
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
 };
 
 #endif //TRIANGLEAPP_H
