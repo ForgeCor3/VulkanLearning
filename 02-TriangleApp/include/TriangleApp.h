@@ -26,8 +26,8 @@ const std::vector<const char*> deviceExtensions = {
 	const bool enableValidationLayers = true;
 #endif
 
-const uint32_t WIDTH = 1280;
-const uint32_t HEIGHT = 720;
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
 
 class TriangleApp
 {
@@ -95,6 +95,10 @@ private:
 	void createCommandBuffer();
 	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
 
+	void createSyncObjects();
+
+	void drawFrame();
+
 	GLFWwindow* window;
 
 	VkInstance instance;
@@ -115,6 +119,9 @@ private:
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
+	VkFence inFlightFence;
 };
 
 #endif //TRIANGLEAPP_H
