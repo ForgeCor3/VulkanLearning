@@ -29,6 +29,8 @@ const std::vector<const char*> deviceExtensions = {
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 class TriangleApp
 {
 public:
@@ -50,9 +52,17 @@ private:
 	};
 
 	void initWindow();
+
+	static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+	{
+		auto app = reinterpret_cast<TriangleApp*>(glfwGetWindowUserPointer(window));
+		app->framebufferResized = true;
+	}
+
 	void initVulkan();
 	void mainLoop();
 	void cleanUp();
+	void cleanUpSwapChain();
 
 	void createInstance();
 
@@ -92,12 +102,14 @@ private:
 	void createFramebuffers();
 
 	void createCommandPool();
-	void createCommandBuffer();
+	void createCommandBuffers();
 	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
 
 	void createSyncObjects();
 
 	void drawFrame();
+
+	void recreateSwapChain();
 
 	GLFWwindow* window;
 
@@ -118,10 +130,12 @@ private:
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool;
-	VkCommandBuffer commandBuffer;
-	VkSemaphore imageAvailableSemaphore;
-	VkSemaphore renderFinishedSemaphore;
-	VkFence inFlightFence;
+	std::vector<VkCommandBuffer> commandBuffers;
+	std::vector<VkSemaphore> imageAvailableSemaphores;
+	std::vector<VkSemaphore> renderFinishedSemaphores;
+	std::vector<VkFence> inFlightFences;
+	uint32_t currentFrame = 0;
+	bool framebufferResized = false;
 };
 
 #endif //TRIANGLEAPP_H
