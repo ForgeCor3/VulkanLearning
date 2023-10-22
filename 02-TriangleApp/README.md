@@ -32,8 +32,4 @@ To run the project without validation layers, you need to build it in Release co
 > .\02_TriangleApp.exe
 </pre>
 
-## Detailed description
-
-Mainly the detailed description of the project is created for me to structure the information.
-
-### Table of Contents
+# 爆破は独りでこそ輝く！
