@@ -552,12 +552,15 @@ void TriangleApp::createGraphicsPipeline()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageCreateInfo, fragShaderStageCreateInfo};
 
+	auto bindingDescription = Vertex::getBindingDescription();
+	auto attributeDescription = Vertex::getAttributeDescription();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo {};
 	vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
-	vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr;
-	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
+	vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+	vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputStateCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescription.size());
+	vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescription.data();
 
 	std::vector<VkDynamicState> dynamicStates = {
 		VK_DYNAMIC_STATE_VIEWPORT,
