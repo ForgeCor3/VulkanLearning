@@ -33,6 +33,7 @@ void TriangleApp::initVulkan()
 	createGraphicsPipeline();
 	createFramebuffers();
 	createCommandPool();
+	createVertexBuffer();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -61,6 +62,8 @@ void TriangleApp::cleanUp()
 
 	cleanUpSwapChain();
 
+	vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
+	vkFreeMemory(logicalDevice, vertexBufferMemory, nullptr);
 	vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
 	vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
@@ -716,6 +719,49 @@ void TriangleApp::createCommandPool()
 		throw std::runtime_error("Failed to create command pool.");
 }
 
+void TriangleApp::createVertexBuffer()
+{
+	VkBufferCreateInfo bufferCreateInfo {};
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = sizeof(triangle[0]) * triangle.size();
+	bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
+		throw std::runtime_error("Failed to create vertex buffer.");
+
+	VkMemoryRequirements memoryRequirements;
+	vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memoryRequirements);
+
+	VkMemoryAllocateInfo memoryAllocateInfo {};
+	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memoryAllocateInfo.allocationSize = memoryRequirements.size;
+	memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	if(vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS)
+		throw std::runtime_error("Failed to allocate vertex buffer memory");
+
+	vkBindBufferMemory(logicalDevice, vertexBuffer, vertexBufferMemory, 0);
+
+	void* data;
+	vkMapMemory(logicalDevice, vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
+	memcpy(data, triangle.data(), (size_t)bufferCreateInfo.size);
+	vkUnmapMemory(logicalDevice, vertexBufferMemory);
+}
+
+uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memoryProperties;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+	for(int i = 0; i < memoryProperties.memoryTypeCount; ++i)
+		if(typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+			return i;
+
+	throw std::runtime_error("Failed to find suitable memory type.");
+}
+
 void TriangleApp::createCommandBuffers()
 {
 	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -766,6 +812,12 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t i
 	vkCmdSetViewport(_commandBuffer, 0, 1, &viewport);
 	vkCmdSetScissor(_commandBuffer, 0, 1, &scissor);
 	vkCmdDraw(_commandBuffer, 3, 1, 0, 0);
+
+	VkBuffer vertexBuffers[] = {vertexBuffer};
+	VkDeviceSize offsets[] = {0};
+	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, vertexBuffers, offsets);
+
+	vkCmdDraw(_commandBuffer, static_cast<uint32_t>(triangle.size()), 1, 0, 0);
 
 	vkCmdEndRenderPass(_commandBuffer);
 

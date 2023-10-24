@@ -137,6 +137,8 @@ private:
 	void createFramebuffers();
 
 	void createCommandPool();
+	void createVertexBuffer();
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void createCommandBuffers();
 	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
 
@@ -165,6 +167,8 @@ private:
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool;
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
