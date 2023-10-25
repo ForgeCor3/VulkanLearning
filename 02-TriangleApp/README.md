@@ -31,5 +31,3 @@ To run the project without validation layers, you need to build it in Release co
 > cd Release
 > .\02_TriangleApp.exe
 </pre>
-
-# 爆破は独りでこそ輝く！
