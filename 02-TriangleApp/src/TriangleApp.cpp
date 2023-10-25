@@ -719,35 +719,89 @@ void TriangleApp::createCommandPool()
 		throw std::runtime_error("Failed to create command pool.");
 }
 
-void TriangleApp::createVertexBuffer()
+void TriangleApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	VkBufferCreateInfo bufferCreateInfo {};
 	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferCreateInfo.size = sizeof(triangle[0]) * triangle.size();
-	bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferCreateInfo.size = size;
+	bufferCreateInfo.usage = usage;
 	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &vertexBuffer) != VK_SUCCESS)
+	if(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to create vertex buffer.");
 
 	VkMemoryRequirements memoryRequirements;
-	vkGetBufferMemoryRequirements(logicalDevice, vertexBuffer, &memoryRequirements);
+	vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
 
 	VkMemoryAllocateInfo memoryAllocateInfo {};
 	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	memoryAllocateInfo.allocationSize = memoryRequirements.size;
-	memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
 
-	if(vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS)
+	if(vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
 		throw std::runtime_error("Failed to allocate vertex buffer memory");
 
-	vkBindBufferMemory(logicalDevice, vertexBuffer, vertexBufferMemory, 0);
+	vkBindBufferMemory(logicalDevice, buffer, bufferMemory, 0);
+}
+
+void TriangleApp::createVertexBuffer()
+{
+	VkDeviceSize bufferSize = sizeof(triangle[0]) * triangle.size();
+	
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 	void* data;
-	vkMapMemory(logicalDevice, vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
-	memcpy(data, triangle.data(), (size_t)bufferCreateInfo.size);
-	vkUnmapMemory(logicalDevice, vertexBufferMemory);
+	vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+	memcpy(data, triangle.data(), (size_t)bufferSize);
+	vkUnmapMemory(logicalDevice, stagingBufferMemory);
+
+	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+	copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+	vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+	vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+}
+
+void TriangleApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandPool = commandPool;
+	commandBufferAllocateInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo commandBufferBeginInfo {};
+	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+	VkBufferCopy copyRegion {};
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	copyRegion.size = size;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(graphicsQueue);
+
+	vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
 }
 
 uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
