@@ -1,8 +1,7 @@
 #ifndef TRIANGLEAPP_H
 #define TRIANGLEAPP_H
 
-#include "extensions.h"
-
+#include "Extensions.h"
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
@@ -12,27 +11,27 @@
 #include <limits>
 #include <algorithm>
 #include <fstream>
-
 #include <glm/glm.hpp>
 
-const std::vector<const char*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-};
-
-const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
-#ifdef NDEBUG
-	const bool enableValidationLayers = false;
-#else
-	const bool enableValidationLayers = true;
-#endif
+#include "VulkanInitialization.h"
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
-
 const int MAX_FRAMES_IN_FLIGHT = 2;
+
+const std::vector<const char*> validationLayers = { // TO COMMENT
+	"VK_LAYER_KHRONOS_validation" 
+};
+
+const std::vector<const char*> deviceExtensions = { // TO COMMENT
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+// #ifdef NDEBUG
+// 	const bool enableValidationLayers = false;
+// #else
+// 	const bool enableValidationLayers = true;
+// #endif
 
 class TriangleApp
 {
@@ -40,14 +39,14 @@ public:
 	void run();
 
 private:
-	struct QueueFamilyIndices
+	struct QueueFamilyIndices // TO COMMENT
 	{
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
 		bool isComplete() {return graphicsFamily.has_value() && presentFamily.has_value();}
 	};
 
-	struct SwapChainSupportDetails
+	struct SwapChainSupportDetails // TO COMMENT
 	{
 		VkSurfaceCapabilitiesKHR capabilities;
 		std::vector<VkSurfaceFormatKHR> formats;
@@ -87,6 +86,51 @@ private:
 	};
 
 	void initWindow();
+	void initVulkan();
+	void mainLoop();
+	void cleanUp();
+	void cleanUpSwapChain();
+
+	//void createInstance();
+	//void setupDebugMessenger();
+	//void createSurface();
+	//void pickPhysicalDevice();
+	//void createLogicalDevice();
+	// void createSwapChain();
+	//void createSwapChainImageViews();
+	//void createRenderPass();
+	//void createGraphicsPipeline();
+	//VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
+	void createFramebuffers();
+	void createCommandPool();
+	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+	void createVertexBuffer();
+	void createCommandBuffers();
+	void createSyncObjects();
+
+	//void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	//bool checkValidationLayerSupport();
+	//std::vector<const char*> getRequiredExtensions();
+	//bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
+	//bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice); //TO COMMENT
+	//SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice); // TO COMMENT
+
+
+	// VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats);
+	// VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	// VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	//std::vector<char> readFile(const std::string& fileName);
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
+	void recreateSwapChain();
+	void drawFrame();
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData);
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 	{
@@ -94,65 +138,7 @@ private:
 		app->framebufferResized = true;
 	}
 
-	void initVulkan();
-	void mainLoop();
-	void cleanUp();
-	void cleanUpSwapChain();
-
-	void createInstance();
-
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData);
-	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-	void setupDebugMessenger();
-
-	bool checkValidationLayerSupport();
-	std::vector<const char*> getRequiredExtensions();
-
-	void createSurface();
-
-	void pickPhysicalDevice();
-	bool isPhysicalDeviceSuitable(VkPhysicalDevice _physicalDevice);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice _physicalDevice);
-
-	void createLogicalDevice();
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice _physicalDevice);
-	
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice _physicalDevice);
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-	void createSwapChain();
-	void createSwapChainImageViews();
-
-	void createRenderPass();
-	void createGraphicsPipeline();
-	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-
-	std::vector<char> readFile(const std::string& fileName);
-
-	void createFramebuffers();
-
-	void createCommandPool();
-	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	void createVertexBuffer();
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	void createCommandBuffers();
-	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
-
-	void createSyncObjects();
-
-	void drawFrame();
-
-	void recreateSwapChain();
-
 	GLFWwindow* window;
-
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkSurfaceKHR surface;
