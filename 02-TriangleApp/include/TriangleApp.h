@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 
 #include "VulkanInitialization.h"
+#include "TriangleData.h" // TO COMMENT
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -101,7 +102,7 @@ private:
 	//void createRenderPass();
 	//void createGraphicsPipeline();
 	//VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-	void createFramebuffers();
+	//void createFramebuffers();
 	void createCommandPool();
 	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void createVertexBuffer();
@@ -121,16 +122,16 @@ private:
 	// VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	// VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	//std::vector<char> readFile(const std::string& fileName);
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	// void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	// uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
 	void recreateSwapChain();
 	void drawFrame();
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData);
+	// static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	// 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	// 	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	// 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	// 	void* pUserData);
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 	{
@@ -165,11 +166,11 @@ private:
 	uint32_t currentFrame = 0;
 	bool framebufferResized = false;
 
-	const std::vector<Vertex> triangle = {
-		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-	};
+	// std::vector<Vertex> triangle = {
+	// 	{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	// 	{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+	// 	{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+	// };
 };
 
 #endif //TRIANGLEAPP_H

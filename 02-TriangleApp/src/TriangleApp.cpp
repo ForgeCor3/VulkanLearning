@@ -32,6 +32,12 @@ void TriangleApp::initVulkan()
 	vulkanInitialization::createSwapChainImageViews(swapChainImageViews, swapChainImages, &swapChainImageFormat, &logicalDevice);
 	vulkanInitialization::createRenderPass(&logicalDevice, &swapChainImageFormat, renderPass);
 	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &swapChainExtent, pipelineLayout, &renderPass, graphicsPipeline);
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
+	vulkanInitialization::createCommandPool(&logicalDevice, &physicalDevice, &surface, commandPool);
+	vulkanInitialization::createVertexBuffer(&logicalDevice, vertexBuffer, vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
+	vulkanInitialization::createCommandBuffers(&logicalDevice, MAX_FRAMES_IN_FLIGHT, commandBuffers, &commandPool);
+	vulkanInitialization::createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, MAX_FRAMES_IN_FLIGHT,
+		&logicalDevice);
 	//createInstance();
 	//setupDebugMessenger();
 	//createSurface();
@@ -41,11 +47,11 @@ void TriangleApp::initVulkan()
 	//createSwapChainImageViews();
 	//createRenderPass();
 	//createGraphicsPipeline();
-	createFramebuffers();
-	createCommandPool();
-	createVertexBuffer();
-	createCommandBuffers();
-	createSyncObjects();
+	//createFramebuffers();
+	//createCommandPool();
+	//createVertexBuffer();
+	//createCommandBuffers();
+	//createSyncObjects();
 }
 
 void TriangleApp::mainLoop()
@@ -323,35 +329,35 @@ void TriangleApp::cleanUpSwapChain()
 // 	vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
 // }
 
-TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevice)
-{
-	TriangleApp::QueueFamilyIndices indices;
+// TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice _physicalDevice)
+// {
+// 	TriangleApp::QueueFamilyIndices indices;
 
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, nullptr);
+// 	uint32_t queueFamilyCount = 0;
+// 	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, nullptr);
 
-	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, queueFamilies.data());
+// 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+// 	vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-	VkBool32 presentSupport = false;
-	int i = 0;
-	for(const auto& queueFamily : queueFamilies)
-	{
-		if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			indices.graphicsFamily = i;
+// 	VkBool32 presentSupport = false;
+// 	int i = 0;
+// 	for(const auto& queueFamily : queueFamilies)
+// 	{
+// 		if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+// 			indices.graphicsFamily = i;
 		
-		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, i, surface, &presentSupport);
-		if(presentSupport)
-			indices.presentFamily = i;
+// 		vkGetPhysicalDeviceSurfaceSupportKHR(_physicalDevice, i, surface, &presentSupport);
+// 		if(presentSupport)
+// 			indices.presentFamily = i;
 		
-		if(indices.isComplete())
-			break;
+// 		if(indices.isComplete())
+// 			break;
 
-		i++;
-	}
+// 		i++;
+// 	}
 
-	return indices;
-}
+// 	return indices;
+// }
 
 // TriangleApp::SwapChainSupportDetails TriangleApp::querySwapChainSupport(VkPhysicalDevice _physicalDevice)
 // {
@@ -694,151 +700,151 @@ TriangleApp::QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice 
 // 	return buffer;
 // }
 
-void TriangleApp::createFramebuffers()
-{
-	swapChainFramebuffers.resize(swapChainImageViews.size());
+// void TriangleApp::createFramebuffers()
+// {
+// 	swapChainFramebuffers.resize(swapChainImageViews.size());
 
-	for(int i = 0; i < swapChainImageViews.size(); ++i)
-	{
-		VkImageView attachments[] = {swapChainImageViews[i]};
+// 	for(int i = 0; i < swapChainImageViews.size(); ++i)
+// 	{
+// 		VkImageView attachments[] = {swapChainImageViews[i]};
 
-		VkFramebufferCreateInfo framebufferCreateInfo {};
-		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferCreateInfo.renderPass = renderPass;
-		framebufferCreateInfo.attachmentCount = 1;
-		framebufferCreateInfo.pAttachments = attachments;
-		framebufferCreateInfo.width = swapChainExtent.width;
-		framebufferCreateInfo.height = swapChainExtent.height;
-		framebufferCreateInfo.layers = 1;
+// 		VkFramebufferCreateInfo framebufferCreateInfo {};
+// 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+// 		framebufferCreateInfo.renderPass = renderPass;
+// 		framebufferCreateInfo.attachmentCount = 1;
+// 		framebufferCreateInfo.pAttachments = attachments;
+// 		framebufferCreateInfo.width = swapChainExtent.width;
+// 		framebufferCreateInfo.height = swapChainExtent.height;
+// 		framebufferCreateInfo.layers = 1;
 
-		if(vkCreateFramebuffer(logicalDevice, &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create framebuffer."); 
-	}
-}
+// 		if(vkCreateFramebuffer(logicalDevice, &framebufferCreateInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS)
+// 			throw std::runtime_error("Failed to create framebuffer."); 
+// 	}
+//}
 
-void TriangleApp::createCommandPool()
-{
-	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+// void TriangleApp::createCommandPool()
+// {
+// 	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-	VkCommandPoolCreateInfo commandPoolCreateInfo {};
-	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+// 	VkCommandPoolCreateInfo commandPoolCreateInfo {};
+// 	commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+// 	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+// 	commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-	if(vkCreateCommandPool(logicalDevice, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
-		throw std::runtime_error("Failed to create command pool.");
-}
+// 	if(vkCreateCommandPool(logicalDevice, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+// 		throw std::runtime_error("Failed to create command pool.");
+// }
 
-void TriangleApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
-	VkBufferCreateInfo bufferCreateInfo {};
-	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferCreateInfo.size = size;
-	bufferCreateInfo.usage = usage;
-	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+// void TriangleApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+// 		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+// {
+// 	VkBufferCreateInfo bufferCreateInfo {};
+// 	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+// 	bufferCreateInfo.size = size;
+// 	bufferCreateInfo.usage = usage;
+// 	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
-		throw std::runtime_error("Failed to create vertex buffer.");
+// 	if(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+// 		throw std::runtime_error("Failed to create vertex buffer.");
 
-	VkMemoryRequirements memoryRequirements;
-	vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
+// 	VkMemoryRequirements memoryRequirements;
+// 	vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
 
-	VkMemoryAllocateInfo memoryAllocateInfo {};
-	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryAllocateInfo.allocationSize = memoryRequirements.size;
-	memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
+// 	VkMemoryAllocateInfo memoryAllocateInfo {};
+// 	memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+// 	memoryAllocateInfo.allocationSize = memoryRequirements.size;
+// 	memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
 
-	if(vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-		throw std::runtime_error("Failed to allocate vertex buffer memory");
+// 	if(vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+// 		throw std::runtime_error("Failed to allocate vertex buffer memory");
 
-	vkBindBufferMemory(logicalDevice, buffer, bufferMemory, 0);
-}
+// 	vkBindBufferMemory(logicalDevice, buffer, bufferMemory, 0);
+// }
 
-void TriangleApp::createVertexBuffer()
-{
-	VkDeviceSize bufferSize = sizeof(triangle[0]) * triangle.size();
+// void TriangleApp::createVertexBuffer()
+// {
+// 	VkDeviceSize bufferSize = sizeof(triangle[0]) * triangle.size();
 	
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+// 	VkBuffer stagingBuffer;
+// 	VkDeviceMemory stagingBufferMemory;
+// 	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+// 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-	void* data;
-	vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, triangle.data(), (size_t)bufferSize);
-	vkUnmapMemory(logicalDevice, stagingBufferMemory);
+// 	void* data;
+// 	vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+// 	memcpy(data, triangle.data(), (size_t)bufferSize);
+// 	vkUnmapMemory(logicalDevice, stagingBufferMemory);
 
-	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+// 	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+// 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
-	copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+// 	copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
-	vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
-	vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
-}
+// 	vkDestroyBuffer(logicalDevice, stagingBuffer, nullptr);
+// 	vkFreeMemory(logicalDevice, stagingBufferMemory, nullptr);
+// }
 
-void TriangleApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
-{
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
-	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandPool = commandPool;
-	commandBufferAllocateInfo.commandBufferCount = 1;
+// void TriangleApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+// {
+// 	VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+// 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+// 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+// 	commandBufferAllocateInfo.commandPool = commandPool;
+// 	commandBufferAllocateInfo.commandBufferCount = 1;
 
-	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
+// 	VkCommandBuffer commandBuffer;
+// 	vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
 
-	VkCommandBufferBeginInfo commandBufferBeginInfo {};
-	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+// 	VkCommandBufferBeginInfo commandBufferBeginInfo {};
+// 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+// 	commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+// 	vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
-	VkBufferCopy copyRegion {};
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	copyRegion.size = size;
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+// 	VkBufferCopy copyRegion {};
+// 	copyRegion.srcOffset = 0;
+// 	copyRegion.dstOffset = 0;
+// 	copyRegion.size = size;
+// 	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-	vkEndCommandBuffer(commandBuffer);
+// 	vkEndCommandBuffer(commandBuffer);
 
-	VkSubmitInfo submitInfo {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
+// 	VkSubmitInfo submitInfo {};
+// 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+// 	submitInfo.commandBufferCount = 1;
+// 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(graphicsQueue);
+// 	vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+// 	vkQueueWaitIdle(graphicsQueue);
 
-	vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
-}
+// 	vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
+// }
 
-uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-	VkPhysicalDeviceMemoryProperties memoryProperties;
-	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+// uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+// {
+// 	VkPhysicalDeviceMemoryProperties memoryProperties;
+// 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
 
-	for(int i = 0; i < memoryProperties.memoryTypeCount; ++i)
-		if(typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-			return i;
+// 	for(int i = 0; i < memoryProperties.memoryTypeCount; ++i)
+// 		if(typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+// 			return i;
 
-	throw std::runtime_error("Failed to find suitable memory type.");
-}
+// 	throw std::runtime_error("Failed to find suitable memory type.");
+// }
 
-void TriangleApp::createCommandBuffers()
-{
-	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+// void TriangleApp::createCommandBuffers()
+// {
+// 	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
-	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferAllocateInfo.commandPool = commandPool;
-	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferAllocateInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+// 	VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+// 	commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+// 	commandBufferAllocateInfo.commandPool = commandPool;
+// 	commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+// 	commandBufferAllocateInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-	if(vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS)
-		std::runtime_error("Failed to allocate command buffers.");
-}
+// 	if(vkAllocateCommandBuffers(logicalDevice, &commandBufferAllocateInfo, commandBuffers.data()) != VK_SUCCESS)
+// 		std::runtime_error("Failed to allocate command buffers.");
+// }
 
 void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex)
 {
@@ -881,7 +887,7 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t i
 	VkDeviceSize offsets[] = {0};
 	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, vertexBuffers, offsets);
 
-	vkCmdDraw(_commandBuffer, static_cast<uint32_t>(triangle.size()), 1, 0, 0);
+	vkCmdDraw(_commandBuffer, static_cast<uint32_t>(triangleData::triangle.size()), 1, 0, 0);
 
 	vkCmdEndRenderPass(_commandBuffer);
 
@@ -889,27 +895,27 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t i
 		throw std::runtime_error("Failed to record command buffer");
 }
 
-void TriangleApp::createSyncObjects()
-{
-	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+// void TriangleApp::createSyncObjects()
+// {
+// 	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+// 	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+// 	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
-	VkSemaphoreCreateInfo semaphoreCreateInfo {};
-	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+// 	VkSemaphoreCreateInfo semaphoreCreateInfo {};
+// 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-	VkFenceCreateInfo fenceCreateInfo {};
-	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+// 	VkFenceCreateInfo fenceCreateInfo {};
+// 	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+// 	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-	{
-		if(vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-		vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-		vkCreateFence(logicalDevice, &fenceCreateInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create synchronization objects.");
-	}
-}
+// 	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+// 	{
+// 		if(vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+// 		vkCreateSemaphore(logicalDevice, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+// 		vkCreateFence(logicalDevice, &fenceCreateInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+// 			throw std::runtime_error("Failed to create synchronization objects.");
+// 	}
+// }
 
 void TriangleApp::drawFrame()
 {
@@ -987,5 +993,5 @@ void TriangleApp::recreateSwapChain()
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, swapChain, swapChainImages,
 		swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(swapChainImageViews, swapChainImages, &swapChainImageFormat, &logicalDevice);
-	createFramebuffers();
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 }

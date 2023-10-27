@@ -3,7 +3,7 @@
 
 #include "Utility.h"
 #include "Extensions.h"
-#include "Vertex.h"
+#include "TriangleData.h"
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -36,6 +36,15 @@ namespace vulkanInitialization
     void createRenderPass(VkDevice* _logicalDevice, VkFormat* _swapChainImageFormat, VkRenderPass& _renderPass);
     void createGraphicsPipeline(VkDevice* _logicalDevice, VkExtent2D* _swapChainExtent, VkPipelineLayout& _pipelineLayout,
         VkRenderPass* _renderPass, VkPipeline& _graphicsPipeline);
+    void createFramebuffers(VkDevice* logicalDevice_, std::vector<VkFramebuffer>& swapChainFramebuffers_,
+        std::vector<VkImageView> swapChainImageViews_, VkRenderPass* renderPass_, VkExtent2D* swapChainExtent_);
+    void createCommandPool(VkDevice* logicalDevice_, VkPhysicalDevice* physicalDevice_, VkSurfaceKHR* surface_, VkCommandPool& commandPool_);
+    void createVertexBuffer(VkDevice* logicalDevice_, VkBuffer& vertexBuffer_, VkDeviceMemory& vertexBufferMemory_,
+        VkCommandPool* commandPool_, VkQueue* queue, VkPhysicalDevice* physicalDevice_);
+    void createCommandBuffers(VkDevice* logicalDevice_, const int MAX_FRAMES_IN_FLIGHT_, std::vector<VkCommandBuffer>& commandBuffers_,
+        VkCommandPool* commandPool_);
+    void createSyncObjects(std::vector<VkSemaphore>& imageAvailableSemaphores_, std::vector<VkSemaphore>& renderFinishedSemaphores_,
+        std::vector<VkFence>& inFlightFences_, const int MAX_FRAMES_IN_FLIGHT_, VkDevice* logicalDevice_);
 } //namespace vulkanInitialization
 
 #endif //VULKANINITIALIZATION_H

@@ -224,4 +224,79 @@ namespace utility
 
         return shaderModule;
     }
+
+    void createBuffer(VkDevice* logicalDevice_, VkDeviceSize size, VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkPhysicalDevice* physicalDevice_)
+    {
+        VkBufferCreateInfo bufferCreateInfo {};
+        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferCreateInfo.size = size;
+        bufferCreateInfo.usage = usage;
+        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if(vkCreateBuffer(*logicalDevice_, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create vertex buffer.");
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(*logicalDevice_, buffer, &memoryRequirements);
+
+        VkMemoryAllocateInfo memoryAllocateInfo {};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties, physicalDevice_);
+
+        if(vkAllocateMemory(*logicalDevice_, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+            throw std::runtime_error("Failed to allocate vertex buffer memory");
+
+        vkBindBufferMemory(*logicalDevice_, buffer, bufferMemory, 0);
+    }
+
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice_)
+    {
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+        vkGetPhysicalDeviceMemoryProperties(*physicalDevice_, &memoryProperties);
+
+        for(int i = 0; i < memoryProperties.memoryTypeCount; ++i)
+            if(typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+                return i;
+
+        throw std::runtime_error("Failed to find suitable memory type.");
+    }
+
+    void copyBuffer(VkDevice* logicalDevice_, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool* commandPool_,
+        VkQueue* queue_)
+    {
+        VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandBufferAllocateInfo.commandPool = *commandPool_;
+        commandBufferAllocateInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(*logicalDevice_, &commandBufferAllocateInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo commandBufferBeginInfo {};
+        commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+        VkBufferCopy copyRegion {};
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(*queue_, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(*queue_);
+
+        vkFreeCommandBuffers(*logicalDevice_, *commandPool_, 1, &commandBuffer);
+    }
 } //namespace utility

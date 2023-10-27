@@ -378,4 +378,102 @@ namespace vulkanInitialization
         vkDestroyShaderModule(*_logicalDevice, vertShaderModule, nullptr);
         vkDestroyShaderModule(*_logicalDevice, fragShaderModule, nullptr);
     }
+
+    void createFramebuffers(VkDevice* logicalDevice_, std::vector<VkFramebuffer>& swapChainFramebuffers_,
+        std::vector<VkImageView> swapChainImageViews_, VkRenderPass* renderPass_, VkExtent2D* swapChainExtent_)
+    {
+        swapChainFramebuffers_.resize(swapChainImageViews_.size());
+
+        for(int i = 0; i < swapChainImageViews_.size(); ++i)
+        {
+            VkImageView attachments[] = {swapChainImageViews_[i]};
+
+            VkFramebufferCreateInfo framebufferCreateInfo {};
+            framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferCreateInfo.renderPass = *renderPass_;
+            framebufferCreateInfo.attachmentCount = 1;
+            framebufferCreateInfo.pAttachments = attachments;
+            framebufferCreateInfo.width = swapChainExtent_->width;
+            framebufferCreateInfo.height = swapChainExtent_->height;
+            framebufferCreateInfo.layers = 1;
+
+            if(vkCreateFramebuffer(*logicalDevice_, &framebufferCreateInfo, nullptr, &swapChainFramebuffers_[i]) != VK_SUCCESS)
+                throw std::runtime_error("Failed to create framebuffer."); 
+        }
+    }
+
+    void createCommandPool(VkDevice* logicalDevice_, VkPhysicalDevice* physicalDevice_, VkSurfaceKHR* surface_, VkCommandPool& commandPool_)
+    {
+        QueueFamilyIndices queueFamilyIndices = utility::findQueueFamilies(physicalDevice_, surface_);
+
+        VkCommandPoolCreateInfo commandPoolCreateInfo {};
+        commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        commandPoolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+        if(vkCreateCommandPool(*logicalDevice_, &commandPoolCreateInfo, nullptr, &commandPool_) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create command pool.");
+    }
+
+    void createVertexBuffer(VkDevice* logicalDevice_, VkBuffer& vertexBuffer_, VkDeviceMemory& vertexBufferMemory_,
+        VkCommandPool* commandPool_, VkQueue* queue, VkPhysicalDevice* physicalDevice_)
+    {
+        VkDeviceSize bufferSize = sizeof(triangleData::triangle[0]) * triangleData::triangle.size();
+	
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        utility::createBuffer(logicalDevice_, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory, physicalDevice_);
+
+        void* data;
+        vkMapMemory(*logicalDevice_, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, triangleData::triangle.data(), (size_t)bufferSize);
+        vkUnmapMemory(*logicalDevice_, stagingBufferMemory);
+
+        utility::createBuffer(logicalDevice_, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer_, vertexBufferMemory_, physicalDevice_);
+
+        utility::copyBuffer(logicalDevice_, stagingBuffer, vertexBuffer_, bufferSize, commandPool_, queue);
+
+        vkDestroyBuffer(*logicalDevice_, stagingBuffer, nullptr);
+        vkFreeMemory(*logicalDevice_, stagingBufferMemory, nullptr);
+    }
+
+    void createCommandBuffers(VkDevice* logicalDevice_, const int MAX_FRAMES_IN_FLIGHT_, std::vector<VkCommandBuffer>& commandBuffers_,
+        VkCommandPool* commandPool_)
+    {
+        commandBuffers_.resize(MAX_FRAMES_IN_FLIGHT_);
+
+        VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandBufferAllocateInfo.commandPool = *commandPool_;
+        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandBufferAllocateInfo.commandBufferCount = (uint32_t)commandBuffers_.size();
+
+        if(vkAllocateCommandBuffers(*logicalDevice_, &commandBufferAllocateInfo, commandBuffers_.data()) != VK_SUCCESS)
+            std::runtime_error("Failed to allocate command buffers.");
+    }
+
+    void createSyncObjects(std::vector<VkSemaphore>& imageAvailableSemaphores_, std::vector<VkSemaphore>& renderFinishedSemaphores_,
+        std::vector<VkFence>& inFlightFences_, const int MAX_FRAMES_IN_FLIGHT_, VkDevice* logicalDevice_)
+    {
+        imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT_);
+        renderFinishedSemaphores_.resize(MAX_FRAMES_IN_FLIGHT_);
+        inFlightFences_.resize(MAX_FRAMES_IN_FLIGHT_);
+
+        VkSemaphoreCreateInfo semaphoreCreateInfo {};
+        semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceCreateInfo {};
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        for(int i = 0; i < MAX_FRAMES_IN_FLIGHT_; ++i)
+        {
+            if(vkCreateSemaphore(*logicalDevice_, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores_[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(*logicalDevice_, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores_[i]) != VK_SUCCESS ||
+            vkCreateFence(*logicalDevice_, &fenceCreateInfo, nullptr, &inFlightFences_[i]) != VK_SUCCESS)
+                throw std::runtime_error("Failed to create synchronization objects.");
+        }
+    }
 } //namespace vulkanInitialization
