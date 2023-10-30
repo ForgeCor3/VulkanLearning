@@ -1,6 +1,7 @@
 # TriangleApp
 
-This is my first experience with the Vulkan API and basically working with a low-level graphics API.The whole project was created by tutorials.  The whole project was created according to the [Khronos Vulkan Tutorial](https://docs.vulkan.org/tutorial/latest/00_Introduction.html).
+This is my first experience with the Vulkan API and basically working with a low-level graphics API</br>
+Project was created according to the [Khronos Vulkan Tutorial](https://docs.vulkan.org/tutorial/latest/00_Introduction.html).
 
 The main goal of the project is to familiarize myself with basic mechanisms and techniques of working with Vulkan and to create a kind of Hello World for graphic programmers.
 
