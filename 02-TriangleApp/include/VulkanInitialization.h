@@ -21,30 +21,29 @@ namespace vulkanInitialization
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-    void createInstance(VkInstance& _instance);
-    void setupDebugMessenger(VkInstance& _instance, VkDebugUtilsMessengerEXT& _debugMessenger);
-    void createSurface(VkInstance& _instance, GLFWwindow& _window, VkSurfaceKHR& _surface);
-    void pickPhysicalDevice(VkInstance& _instance, VkPhysicalDevice& _physicalDevice,
-        VkSurfaceKHR* _surface, const std::vector<const char*>& _deviceExtensions);
-    void createLogicalDevice(VkPhysicalDevice* _physicalDevice, VkSurfaceKHR* _surface,
-        VkDevice& _logicalDevice, VkQueue& _graphicsQueue, VkQueue& _presentQueue);
-    void createSwapChain(VkDevice* _logicalDevice, VkPhysicalDevice* _physicalDevice, VkSurfaceKHR* _surface,
-        GLFWwindow* _window, VkSwapchainKHR& _swapChain, std::vector<VkImage>& _swapChainImages,
-        VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent);
-    void createSwapChainImageViews(std::vector<VkImageView>& _swapChainImageViews, std::vector<VkImage> _swapChainImages,
-    VkFormat* _swapChainImageFormat, VkDevice* _logicalDevice);
-    void createRenderPass(VkDevice* _logicalDevice, VkFormat* _swapChainImageFormat, VkRenderPass& _renderPass);
-    void createGraphicsPipeline(VkDevice* _logicalDevice, VkExtent2D* _swapChainExtent, VkPipelineLayout& _pipelineLayout,
-        VkRenderPass* _renderPass, VkPipeline& _graphicsPipeline);
-    void createFramebuffers(VkDevice* logicalDevice_, std::vector<VkFramebuffer>& swapChainFramebuffers_,
-        std::vector<VkImageView> swapChainImageViews_, VkRenderPass* renderPass_, VkExtent2D* swapChainExtent_);
-    void createCommandPool(VkDevice* logicalDevice_, VkPhysicalDevice* physicalDevice_, VkSurfaceKHR* surface_, VkCommandPool& commandPool_);
-    void createVertexBuffer(VkDevice* logicalDevice_, VkBuffer& vertexBuffer_, VkDeviceMemory& vertexBufferMemory_,
-        VkCommandPool* commandPool_, VkQueue* queue, VkPhysicalDevice* physicalDevice_);
-    void createCommandBuffers(VkDevice* logicalDevice_, const int MAX_FRAMES_IN_FLIGHT_, std::vector<VkCommandBuffer>& commandBuffers_,
-        VkCommandPool* commandPool_);
-    void createSyncObjects(std::vector<VkSemaphore>& imageAvailableSemaphores_, std::vector<VkSemaphore>& renderFinishedSemaphores_,
-        std::vector<VkFence>& inFlightFences_, const int MAX_FRAMES_IN_FLIGHT_, VkDevice* logicalDevice_);
+    void createInstance(VkInstance* instance);
+    void setupDebugMessenger(VkInstance* instance, VkDebugUtilsMessengerEXT* debugMessenger);
+
+    void createSurface(VkInstance* instance, GLFWwindow* window, VkSurfaceKHR* surface);
+
+    void pickPhysicalDevice(VkInstance* instance, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
+    void createLogicalDevice(VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, VkDevice* logicalDevice, VkQueue* graphicsQueue, VkQueue* presentQueue);
+
+    void createSwapChain(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, GLFWwindow* window, VkSwapchainKHR* swapChain,
+        std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent);
+    void createSwapChainImageViews(VkDevice* logicalDevice, std::vector<VkImageView>& swapChainImageViews, std::vector<VkImage> swapChainImages, VkFormat* swapChainImageFormat);
+
+    void createRenderPass(VkDevice* logicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat);
+    void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout, VkRenderPass* _renderPass);
+
+    void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView> swapChainImageViews, VkRenderPass* renderPass,
+        VkExtent2D* swapChainExtent);
+    void createCommandPool(VkDevice* logicalDevice, VkCommandPool* commandPool, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
+    void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
+    void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool);
+    void createSyncObjects(VkDevice* logicalDevice, std::vector<VkSemaphore>& imageAvailableSemaphores, std::vector<VkSemaphore>& renderFinishedSemaphores, std::vector<VkFence>& inFlightFences,
+        const int MAX_FRAMES_IN_FLIGHT);
+
 } //namespace vulkanInitialization
 
 #endif //VULKANINITIALIZATION_H

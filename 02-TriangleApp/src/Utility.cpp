@@ -2,7 +2,7 @@
 
 namespace utility
 {
-    bool checkValidationLayerSupport(const std::vector<const char*>& validationLayers)
+    bool checkValidationLayerSupport(const std::vector<const char*> validationLayers)
     {
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -29,7 +29,7 @@ namespace utility
         return true;
     }
 
-    std::vector<const char*> getRequiredExtensions(const bool _enableValidationLayers)
+    std::vector<const char*> getRequiredExtensions(const bool enableValidationLayers)
     {
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions;
@@ -37,7 +37,7 @@ namespace utility
 
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-        if(_enableValidationLayers)
+        if(enableValidationLayers)
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
         return extensions;
@@ -68,30 +68,30 @@ namespace utility
         return VK_FALSE;
     }
 
-    bool isPhysicalDeviceSuitable(VkPhysicalDevice& _physicalDevice, VkSurfaceKHR* _surface, const std::vector<const char*>& _deviceExtensions)
+    bool isPhysicalDeviceSuitable(VkPhysicalDevice& physicalDevice, VkSurfaceKHR* surface, const std::vector<const char*>& deviceExtensions)
     {
-        QueueFamilyIndices indices = findQueueFamilies(&_physicalDevice, _surface);
+        QueueFamilyIndices indices = findQueueFamilies(&physicalDevice, surface);
 
         bool swapChainAdequate = false;
 
-        if(checkDeviceExtensionSupport(&_physicalDevice, _deviceExtensions))
+        if(checkDeviceExtensionSupport(&physicalDevice, deviceExtensions))
         {
-            SwapChainSupportDetails swapChainSupport = querySwapChainSupport(&_physicalDevice, _surface);
+            SwapChainSupportDetails swapChainSupport = querySwapChainSupport(&physicalDevice, surface);
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 
         return (indices.isComplete() && swapChainAdequate);
     }
 
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice* _physicalDevice, VkSurfaceKHR* _surface)
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface)
     {
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(*_physicalDevice, &queueFamilyCount, nullptr);
+        vkGetPhysicalDeviceQueueFamilyProperties(*physicalDevice, &queueFamilyCount, nullptr);
 
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(*_physicalDevice, &queueFamilyCount, queueFamilies.data());
+        vkGetPhysicalDeviceQueueFamilyProperties(*physicalDevice, &queueFamilyCount, queueFamilies.data());
 
         VkBool32 presentSupport = false;
         int i = 0;
@@ -100,7 +100,7 @@ namespace utility
             if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
                 indices.graphicsFamily = i;
             
-            vkGetPhysicalDeviceSurfaceSupportKHR(*_physicalDevice, i, *_surface, &presentSupport);
+            vkGetPhysicalDeviceSurfaceSupportKHR(*physicalDevice, i, *surface, &presentSupport);
             if(presentSupport)
                 indices.presentFamily = i;
             
@@ -113,13 +113,13 @@ namespace utility
         return indices;
     }
 
-    bool checkDeviceExtensionSupport(VkPhysicalDevice* _physicalDevice, const std::vector<const char*>& deviceExtensions)
+    bool checkDeviceExtensionSupport(VkPhysicalDevice* physicalDevice, const std::vector<const char*> deviceExtensions)
     {
         uint32_t extensionCount;
-        vkEnumerateDeviceExtensionProperties(*_physicalDevice, nullptr, &extensionCount, nullptr);
+        vkEnumerateDeviceExtensionProperties(*physicalDevice, nullptr, &extensionCount, nullptr);
 
         std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(*_physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+        vkEnumerateDeviceExtensionProperties(*physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
         std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
@@ -129,26 +129,26 @@ namespace utility
         return requiredExtensions.empty();
     }
 
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice* _physicalDevice, VkSurfaceKHR* _surface)
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface)
     {
         SwapChainSupportDetails details;
 
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*_physicalDevice, *_surface, &details.capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*physicalDevice, *surface, &details.capabilities);
 
         uint32_t formatCount = 0;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(*_physicalDevice, *_surface, &formatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface, &formatCount, nullptr);
         if(!formatCount == 0)
         {
             details.formats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(*_physicalDevice, *_surface, &formatCount, details.formats.data());
+            vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface, &formatCount, details.formats.data());
         }
 
         uint32_t modeCount = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(*_physicalDevice, *_surface, &modeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, *surface, &modeCount, nullptr);
         if(!modeCount == 0)
         {
             details.presentModes.resize(modeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(*_physicalDevice, *_surface, &modeCount, details.presentModes.data());
+            vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, *surface, &modeCount, details.presentModes.data());
         }
 
         return details;
@@ -172,7 +172,7 @@ namespace utility
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* _window)
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
     {
         if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
             return capabilities.currentExtent;
@@ -180,7 +180,7 @@ namespace utility
         {
             int width;
             int height;
-            glfwGetFramebufferSize(_window, &width, &height);
+            glfwGetFramebufferSize(window, &width, &height);
 
             VkExtent2D actualExtent = {
                 static_cast<uint32_t>(width),
@@ -212,7 +212,7 @@ namespace utility
         return buffer;
     }
 
-    VkShaderModule createShaderModule(const std::vector<char>& shaderCode, VkDevice* _logicalDevice)
+    VkShaderModule createShaderModule(const std::vector<char> shaderCode, VkDevice* logicalDevice)
     {
         VkShaderModuleCreateInfo createInfo {};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -220,13 +220,13 @@ namespace utility
         createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
         VkShaderModule shaderModule;
-        vkCreateShaderModule(*_logicalDevice, &createInfo, nullptr, &shaderModule);
+        vkCreateShaderModule(*logicalDevice, &createInfo, nullptr, &shaderModule);
 
         return shaderModule;
     }
 
-    void createBuffer(VkDevice* logicalDevice_, VkDeviceSize size, VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkPhysicalDevice* physicalDevice_)
+    void createBuffer(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage,
+		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
         VkBufferCreateInfo bufferCreateInfo {};
         bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -234,27 +234,27 @@ namespace utility
         bufferCreateInfo.usage = usage;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if(vkCreateBuffer(*logicalDevice_, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
+        if(vkCreateBuffer(*logicalDevice, &bufferCreateInfo, nullptr, &buffer) != VK_SUCCESS)
             throw std::runtime_error("Failed to create vertex buffer.");
 
         VkMemoryRequirements memoryRequirements;
-        vkGetBufferMemoryRequirements(*logicalDevice_, buffer, &memoryRequirements);
+        vkGetBufferMemoryRequirements(*logicalDevice, buffer, &memoryRequirements);
 
         VkMemoryAllocateInfo memoryAllocateInfo {};
         memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         memoryAllocateInfo.allocationSize = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties, physicalDevice_);
+        memoryAllocateInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties);
 
-        if(vkAllocateMemory(*logicalDevice_, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+        if(vkAllocateMemory(*logicalDevice, &memoryAllocateInfo, nullptr, &bufferMemory) != VK_SUCCESS)
             throw std::runtime_error("Failed to allocate vertex buffer memory");
 
-        vkBindBufferMemory(*logicalDevice_, buffer, bufferMemory, 0);
+        vkBindBufferMemory(*logicalDevice, buffer, bufferMemory, 0);
     }
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice* physicalDevice_)
+    uint32_t findMemoryType(VkPhysicalDevice* physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
         VkPhysicalDeviceMemoryProperties memoryProperties;
-        vkGetPhysicalDeviceMemoryProperties(*physicalDevice_, &memoryProperties);
+        vkGetPhysicalDeviceMemoryProperties(*physicalDevice, &memoryProperties);
 
         for(int i = 0; i < memoryProperties.memoryTypeCount; ++i)
             if(typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
@@ -263,8 +263,7 @@ namespace utility
         throw std::runtime_error("Failed to find suitable memory type.");
     }
 
-    void copyBuffer(VkDevice* logicalDevice_, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkCommandPool* commandPool_,
-        VkQueue* queue_)
+    void copyBuffer(VkDevice* logicalDevice_, VkBuffer* srcBuffer, VkBuffer* dstBuffer, VkDeviceSize size, VkCommandPool* commandPool_, VkQueue* queue_)
     {
         VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -285,7 +284,7 @@ namespace utility
         copyRegion.srcOffset = 0;
         copyRegion.dstOffset = 0;
         copyRegion.size = size;
-        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+        vkCmdCopyBuffer(commandBuffer, *srcBuffer, *dstBuffer, 1, &copyRegion);
 
         vkEndCommandBuffer(commandBuffer);
 
@@ -299,4 +298,5 @@ namespace utility
 
         vkFreeCommandBuffers(*logicalDevice_, *commandPool_, 1, &commandBuffer);
     }
+
 } //namespace utility

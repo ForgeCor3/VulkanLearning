@@ -16,6 +16,7 @@ namespace extensions
     void DestroyDebugUtilsMessengerEXT(VkInstance instance,
         VkDebugUtilsMessengerEXT debugMessenger,
         const VkAllocationCallbacks* pAllocator);
+        
 } //namespace extensions
 
 #endif //EXTENSIONS_H
