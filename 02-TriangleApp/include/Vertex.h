@@ -25,7 +25,7 @@ struct Vertex
 
 	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescription()
 	{
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescription;
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescription {};
 		attributeDescription[0].binding = 0;
 		attributeDescription[0].location = 0;
 		attributeDescription[0].format = VK_FORMAT_R32G32_SFLOAT;

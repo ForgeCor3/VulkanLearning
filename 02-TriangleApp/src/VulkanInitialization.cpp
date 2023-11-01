@@ -252,13 +252,13 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create render pass.");
     }
 
-    void createGraphicsPipeline(VkDevice* _logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout, VkRenderPass* renderPass)
+    void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout, VkRenderPass* renderPass)
     {
         auto vertShaderCode = utility::readFile("../shaders/vert.spv");
         auto fragShaderCode = utility::readFile("../shaders/frag.spv");
 
-        VkShaderModule vertShaderModule = utility::createShaderModule(vertShaderCode, _logicalDevice);
-        VkShaderModule fragShaderModule = utility::createShaderModule(fragShaderCode, _logicalDevice);
+        VkShaderModule vertShaderModule = utility::createShaderModule(vertShaderCode, logicalDevice);
+        VkShaderModule fragShaderModule = utility::createShaderModule(fragShaderCode, logicalDevice);
 
         VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo {};
         vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -347,7 +347,7 @@ namespace vulkanInitialization
         VkPipelineLayoutCreateInfo layoutCreateInfo {};
         layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         
-        if(vkCreatePipelineLayout(*_logicalDevice, &layoutCreateInfo, nullptr, pipelineLayout) != VK_SUCCESS)
+        if(vkCreatePipelineLayout(*logicalDevice, &layoutCreateInfo, nullptr, pipelineLayout) != VK_SUCCESS)
             throw std::runtime_error("Failed to create pipeline layout.");
 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
@@ -366,11 +366,11 @@ namespace vulkanInitialization
         graphicsPipelineCreateInfo.renderPass = *renderPass;
         graphicsPipelineCreateInfo.subpass = 0;
 
-        if(vkCreateGraphicsPipelines(*_logicalDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(*logicalDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, graphicsPipeline) != VK_SUCCESS)
                 throw std::runtime_error("Failed to create graphics pipeline.");
 
-        vkDestroyShaderModule(*_logicalDevice, vertShaderModule, nullptr);
-        vkDestroyShaderModule(*_logicalDevice, fragShaderModule, nullptr);
+        vkDestroyShaderModule(*logicalDevice, vertShaderModule, nullptr);
+        vkDestroyShaderModule(*logicalDevice, fragShaderModule, nullptr);
     }
 
     void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers,

@@ -90,15 +90,16 @@ void TriangleApp::cleanUpSwapChain()
 	vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
 }
 
-void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex)
+void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 {
 	VkCommandBufferBeginInfo commandBufferBeginInfo {};
 	commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-	if(vkBeginCommandBuffer(_commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
+	if(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
 		throw std::runtime_error("Failed to begin recording command buffer.");
 
 	VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+	
 	VkRenderPassBeginInfo renderPassBeginInfo {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.renderPass = renderPass;
@@ -108,8 +109,8 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t i
 	renderPassBeginInfo.clearValueCount = 1;
 	renderPassBeginInfo.pClearValues = &clearColor;
 
-	vkCmdBeginRenderPass(_commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
 	VkViewport viewport {};
 	viewport.x = 0.0f;
@@ -123,19 +124,18 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t i
 	scissor.offset = {0, 0};
 	scissor.extent = swapChainExtent;
 
-	vkCmdSetViewport(_commandBuffer, 0, 1, &viewport);
-	vkCmdSetScissor(_commandBuffer, 0, 1, &scissor);
-	vkCmdDraw(_commandBuffer, 3, 1, 0, 0);
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 	VkBuffer vertexBuffers[] = {vertexBuffer};
 	VkDeviceSize offsets[] = {0};
-	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, vertexBuffers, offsets);
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-	vkCmdDraw(_commandBuffer, static_cast<uint32_t>(triangleData::triangle.size()), 1, 0, 0);
+	vkCmdDraw(commandBuffer, static_cast<uint32_t>(triangleData::triangle.size()), 1, 0, 0);
 
-	vkCmdEndRenderPass(_commandBuffer);
+	vkCmdEndRenderPass(commandBuffer);
 
-	if(vkEndCommandBuffer(_commandBuffer) != VK_SUCCESS)
+	if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		throw std::runtime_error("Failed to record command buffer");
 }
 
