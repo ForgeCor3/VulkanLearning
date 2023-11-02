@@ -59,6 +59,8 @@ private:
 	VkCommandPool commandPool;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
 	std::vector<VkCommandBuffer> commandBuffers;
 	
 	std::vector<VkSemaphore> imageAvailableSemaphores;

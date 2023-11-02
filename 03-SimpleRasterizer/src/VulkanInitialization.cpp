@@ -3,9 +3,9 @@
 namespace vulkanInitialization
 {
     void createInstance(VkInstance* instance)
-    {
+    {   
         if(enableValidationLayers && !utility::checkValidationLayerSupport(validationLayers))
-		throw std::runtime_error("Validation layers requested, but not available.");
+		    throw std::runtime_error("Validation layers requested, but not available.");
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -412,7 +412,7 @@ namespace vulkanInitialization
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,
         VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice)
     {
-        VkDeviceSize bufferSize = sizeof(triangleData::triangle[0]) * triangleData::triangle.size();
+        VkDeviceSize bufferSize = sizeof(verticesData::vertices[0]) * verticesData::vertices.size();
 	
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -421,7 +421,7 @@ namespace vulkanInitialization
 
         void* data;
         vkMapMemory(*logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, triangleData::triangle.data(), (size_t)bufferSize);
+        memcpy(data, verticesData::vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(*logicalDevice, stagingBufferMemory);
 
         utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -431,6 +431,30 @@ namespace vulkanInitialization
 
         vkDestroyBuffer(*logicalDevice, stagingBuffer, nullptr);
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr);
+    }
+
+    void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory,
+        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice)
+    {
+        VkDeviceSize bufferSize = sizeof(verticesData::indices[0]) * verticesData::indices.size();
+	
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(*logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, verticesData::indices.data(), (size_t)bufferSize);
+        vkUnmapMemory(*logicalDevice, stagingBufferMemory);
+
+        utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, *indexBuffer, *indexBufferMemory);
+
+        utility::copyBuffer(logicalDevice, &stagingBuffer, indexBuffer, bufferSize, commandPool, queue);
+
+        vkDestroyBuffer(*logicalDevice, stagingBuffer, nullptr);
+        vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr); 
     }
 
     void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool)

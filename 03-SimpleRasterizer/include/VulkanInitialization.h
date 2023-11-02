@@ -3,7 +3,7 @@
 
 #include "Utility.h"
 #include "Extensions.h"
-#include "TriangleData.h"
+#include "VerticesData.h"
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -40,6 +40,7 @@ namespace vulkanInitialization
         VkExtent2D* swapChainExtent);
     void createCommandPool(VkDevice* logicalDevice, VkCommandPool* commandPool, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
+    void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
     void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool);
     void createSyncObjects(VkDevice* logicalDevice, std::vector<VkSemaphore>& imageAvailableSemaphores, std::vector<VkSemaphore>& renderFinishedSemaphores, std::vector<VkFence>& inFlightFences,
         const int MAX_FRAMES_IN_FLIGHT);

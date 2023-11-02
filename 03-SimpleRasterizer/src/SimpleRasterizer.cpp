@@ -34,6 +34,7 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
+	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createCommandBuffers(&logicalDevice, MAX_FRAMES_IN_FLIGHT, commandBuffers, &commandPool);
 	vulkanInitialization::createSyncObjects(&logicalDevice, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, MAX_FRAMES_IN_FLIGHT);
 }
@@ -62,6 +63,8 @@ void SimpleRasterizer::cleanUp()
 
 	cleanUpSwapChain();
 
+	vkDestroyBuffer(logicalDevice, indexBuffer, nullptr);
+	vkFreeMemory(logicalDevice, indexBufferMemory, nullptr);
 	vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
 	vkFreeMemory(logicalDevice, vertexBufferMemory, nullptr);
 	vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
@@ -129,8 +132,10 @@ void SimpleRasterizer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 	VkBuffer vertexBuffers[] = {vertexBuffer};
 	VkDeviceSize offsets[] = {0};
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-	vkCmdDraw(commandBuffer, static_cast<uint32_t>(triangleData::triangle.size()), 1, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(verticesData::indices.size()), 1, 0, 0, 0);
+	//vkCmdDraw(commandBuffer, static_cast<uint32_t>(verticesData::vertices.size()), 1, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
