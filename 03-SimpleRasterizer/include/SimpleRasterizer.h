@@ -4,6 +4,9 @@
 #include "Extensions.h"
 #include "VulkanInitialization.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -23,6 +26,7 @@ private:
 
 	void recordCommandBuffer(VkCommandBuffer _commandBuffer, uint32_t imageIndex);
 	void recreateSwapChain();
+	void updateUniformBuffer(uint32_t currentImage);
 	void drawFrame();
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -66,7 +70,7 @@ private:
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void*> uniformBuffersMapped;
-	
+
 	std::vector<VkCommandBuffer> commandBuffers;
 	
 	std::vector<VkSemaphore> imageAvailableSemaphores;

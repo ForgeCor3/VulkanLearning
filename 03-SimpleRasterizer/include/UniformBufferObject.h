@@ -1,7 +1,7 @@
 #ifndef UNIFORMBUFFEROBJECT_H
 #define UNIFORMBUFFEROBJECT_H
 
-#include "glm.hpp"
+#include <glm.hpp>
 
 namespace ubo
 {
