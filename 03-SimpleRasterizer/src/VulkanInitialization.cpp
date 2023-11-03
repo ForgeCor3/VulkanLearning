@@ -252,7 +252,26 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create render pass.");
     }
 
-    void createGraphicsPipeline(VkDevice* _logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout, VkRenderPass* renderPass)
+    void createDescriptorSetLayout(VkDevice* logicalDevice, VkDescriptorSetLayout* descriptorSetLayout)
+    {
+        VkDescriptorSetLayoutBinding uboLayoutBinding {};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {};
+        descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        descriptorSetLayoutCreateInfo.bindingCount = 1;
+        descriptorSetLayoutCreateInfo.pBindings = &uboLayoutBinding;
+
+        if(vkCreateDescriptorSetLayout(*logicalDevice, &descriptorSetLayoutCreateInfo, nullptr, descriptorSetLayout) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create descriptor set layout.");
+    }
+
+    void createGraphicsPipeline(VkDevice* _logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout,
+        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout)
     {
         auto vertShaderCode = utility::readFile("../shaders/vert.spv");
         auto fragShaderCode = utility::readFile("../shaders/frag.spv");
@@ -346,6 +365,8 @@ namespace vulkanInitialization
 
         VkPipelineLayoutCreateInfo layoutCreateInfo {};
         layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        layoutCreateInfo.setLayoutCount = 1;
+        layoutCreateInfo.pSetLayouts = descriptorSetLayout;
         
         if(vkCreatePipelineLayout(*_logicalDevice, &layoutCreateInfo, nullptr, pipelineLayout) != VK_SUCCESS)
             throw std::runtime_error("Failed to create pipeline layout.");
@@ -455,6 +476,24 @@ namespace vulkanInitialization
 
         vkDestroyBuffer(*logicalDevice, stagingBuffer, nullptr);
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr); 
+    }
+
+    void createUniformBuffers(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory,
+        std::vector<void*>& unifromBuffersMapped, const int MAX_FRAMES_IN_FLIGHT)
+    {
+        VkDeviceSize bufferSize = sizeof(ubo::UniformBufferObject);
+
+        uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        unifromBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+        for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                uniformBuffers[i], uniformBuffersMemory[i]);
+
+            vkMapMemory(logicalDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        }
     }
 
     void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool)

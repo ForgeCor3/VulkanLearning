@@ -3,7 +3,9 @@
 
 #include "Utility.h"
 #include "Extensions.h"
+
 #include "VerticesData.h"
+#include "UniformBufferObject.h"
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -34,13 +36,16 @@ namespace vulkanInitialization
     void createSwapChainImageViews(VkDevice* logicalDevice, std::vector<VkImageView>& swapChainImageViews, std::vector<VkImage> swapChainImages, VkFormat* swapChainImageFormat);
 
     void createRenderPass(VkDevice* logicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat);
-    void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout, VkRenderPass* _renderPass);
+    void createDescriptorSetLayout(VkDevice* logicalDevice, VkDescriptorSetLayout* descriptorSetLayout);
+    void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout,
+        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout);
 
     void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView> swapChainImageViews, VkRenderPass* renderPass,
         VkExtent2D* swapChainExtent);
     void createCommandPool(VkDevice* logicalDevice, VkCommandPool* commandPool, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
     void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
+    void createUniformBuffers();
     void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool);
     void createSyncObjects(VkDevice* logicalDevice, std::vector<VkSemaphore>& imageAvailableSemaphores, std::vector<VkSemaphore>& renderFinishedSemaphores, std::vector<VkFence>& inFlightFences,
         const int MAX_FRAMES_IN_FLIGHT);

@@ -30,7 +30,8 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages, swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
 	vulkanInitialization::createRenderPass(&logicalDevice, &renderPass, &swapChainImageFormat);
-	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass);
+	vulkanInitialization::createDescriptorSetLayout(&logicalDevice, &descriptorSetLayout);
+	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout);
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
@@ -67,6 +68,14 @@ void SimpleRasterizer::cleanUp()
 	vkFreeMemory(logicalDevice, indexBufferMemory, nullptr);
 	vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
 	vkFreeMemory(logicalDevice, vertexBufferMemory, nullptr);
+
+	for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		vkDestroyBuffer(logicalDevice, uniformBuffers[i], nullptr);
+		vkFreeMemory(logicalDevice, uniformBuffersMemory[i], nullptr);
+	}
+
+	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
 	vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
 	vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
