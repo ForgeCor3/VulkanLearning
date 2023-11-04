@@ -344,7 +344,7 @@ namespace vulkanInitialization
         rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationStateCreateInfo.lineWidth = 1.0f;
         rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 
         VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {};
@@ -478,7 +478,7 @@ namespace vulkanInitialization
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr); 
     }
 
-    void createUniformBuffers(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory,
+    void createUniformBuffers(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory,
         std::vector<void*>& unifromBuffersMapped, const int MAX_FRAMES_IN_FLIGHT)
     {
         VkDeviceSize bufferSize = sizeof(ubo::UniformBufferObject);
@@ -491,8 +491,63 @@ namespace vulkanInitialization
         {
             utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 uniformBuffers[i], uniformBuffersMemory[i]);
+            
+            void* pData;
+            VkResult result = vkMapMemory(*logicalDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &pData);
+            if (result == VK_SUCCESS)
+                unifromBuffersMapped[i] = pData;
+        }
+    }
 
-            vkMapMemory(logicalDevice, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+    void createDescriptorPool(VkDevice* logicalDevice, VkDescriptorPool* descriptorPool, const int MAX_FRAMES_IN_FLIGHT)
+    {
+        VkDescriptorPoolSize descriptorPoolSize {};
+        descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        
+        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo {};
+        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolCreateInfo.poolSizeCount = 1;
+        descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+        descriptorPoolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        if(vkCreateDescriptorPool(*logicalDevice, &descriptorPoolCreateInfo, nullptr, descriptorPool) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create descriptor pool.");
+    }
+
+    void createDescriptorSets(VkDevice* logicalDevice, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorSetLayout* descriptorSetLayout, VkDescriptorPool* descriptorPool,
+        std::vector<VkBuffer> uniformBuffers, const int MAX_FRAMES_IN_FLIGHT)
+    {
+        descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo {};
+        descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        descriptorSetAllocateInfo.descriptorPool = *descriptorPool;
+        descriptorSetAllocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        descriptorSetAllocateInfo.pSetLayouts = layouts.data();
+
+        if(vkAllocateDescriptorSets(*logicalDevice, &descriptorSetAllocateInfo, descriptorSets.data()) != VK_SUCCESS)
+            throw std::runtime_error("Failed to allocate descriptor sets.");
+
+        for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            VkDescriptorBufferInfo descriptorBufferInfo {};
+            descriptorBufferInfo.buffer = uniformBuffers[i];
+            descriptorBufferInfo.offset = 0;
+            descriptorBufferInfo.range = sizeof(ubo::UniformBufferObject);
+
+            VkWriteDescriptorSet writeDescriptorSet {};
+            writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSet.dstSet = descriptorSets[i];
+            writeDescriptorSet.dstBinding = 0;
+            writeDescriptorSet.dstArrayElement = 0;
+            writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            writeDescriptorSet.descriptorCount = 1;
+            writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
+
+            vkUpdateDescriptorSets(*logicalDevice, 1, &writeDescriptorSet, 0, nullptr);
         }
     }
 

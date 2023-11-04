@@ -36,6 +36,9 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
+	vulkanInitialization::createUniformBuffers(&logicalDevice, &physicalDevice, uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, MAX_FRAMES_IN_FLIGHT);
+	vulkanInitialization::createDescriptorPool(&logicalDevice, &descriptorPool, MAX_FRAMES_IN_FLIGHT);
+	vulkanInitialization::createDescriptorSets(&logicalDevice, descriptorSets, &descriptorSetLayout, &descriptorPool, uniformBuffers, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createCommandBuffers(&logicalDevice, MAX_FRAMES_IN_FLIGHT, commandBuffers, &commandPool);
 	vulkanInitialization::createSyncObjects(&logicalDevice, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, MAX_FRAMES_IN_FLIGHT);
 }
@@ -75,6 +78,7 @@ void SimpleRasterizer::cleanUp()
 		vkFreeMemory(logicalDevice, uniformBuffersMemory[i], nullptr);
 	}
 
+	vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
 	vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
 	vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
@@ -142,9 +146,8 @@ void SimpleRasterizer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 	VkDeviceSize offsets[] = {0};
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(verticesData::indices.size()), 1, 0, 0, 0);
-	//vkCmdDraw(commandBuffer, static_cast<uint32_t>(verticesData::vertices.size()), 1, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 

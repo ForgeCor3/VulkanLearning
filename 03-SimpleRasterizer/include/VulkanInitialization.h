@@ -45,8 +45,13 @@ namespace vulkanInitialization
     void createCommandPool(VkDevice* logicalDevice, VkCommandPool* commandPool, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
     void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
-    void createUniformBuffers();
+    void createUniformBuffers(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory,
+        std::vector<void*>& unifromBuffersMapped, const int MAX_FRAMES_IN_FLIGHT);
+    void createDescriptorPool(VkDevice* logicalDevice, VkDescriptorPool* descriptorPool, const int MAX_FRAMES_IN_FLIGHT);
+    void createDescriptorSets(VkDevice* logicalDevice, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorSetLayout* descriptorSetLayout, VkDescriptorPool* descriptorPool,
+        std::vector<VkBuffer> uniformBuffers, const int MAX_FRAMES_IN_FLIGHT);
     void createCommandBuffers(VkDevice* logicalDevice, const int MAX_FRAMES_IN_FLIGHT, std::vector<VkCommandBuffer>& commandBuffers, VkCommandPool* commandPool);
+
     void createSyncObjects(VkDevice* logicalDevice, std::vector<VkSemaphore>& imageAvailableSemaphores, std::vector<VkSemaphore>& renderFinishedSemaphores, std::vector<VkFence>& inFlightFences,
         const int MAX_FRAMES_IN_FLIGHT);
 
