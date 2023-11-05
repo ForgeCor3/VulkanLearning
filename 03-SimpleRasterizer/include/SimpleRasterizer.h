@@ -63,6 +63,9 @@ private:
 
 	VkCommandPool commandPool;
 
+	VkImage textureImage;
+	VkDeviceMemory textureImageMemory;
+
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 	VkBuffer indexBuffer;

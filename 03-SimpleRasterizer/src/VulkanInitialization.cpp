@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "VulkanInitialization.h"
 
 namespace vulkanInitialization
@@ -428,6 +430,34 @@ namespace vulkanInitialization
 
         if(vkCreateCommandPool(*logicalDevice, &commandPoolCreateInfo, nullptr, commandPool) != VK_SUCCESS)
             throw std::runtime_error("Failed to create command pool.");
+    }
+
+    void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory)
+    {
+        int textureWidth;
+        int textureHeiht;
+        int textureChannels;
+
+        stbi_uc* pixels = stbi_load("../textures/logo.png", &textureWidth, &textureHeiht, &textureChannels, STBI_rgb_alpha);
+        VkDeviceSize imageSize = textureWidth * textureHeiht * 4;
+
+        if(!pixels)
+            throw std::runtime_error("Failed to load texture image");
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        utility::createBuffer(logicalDevice, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(*logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+        vkUnmapMemory(*logicalDevice, stagingBufferMemory);
+
+        stbi_image_free(pixels);
+
+        utility::createImage(logicalDevice, physicalDevice, textureWidth, textureHeiht, VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
     }
 
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,

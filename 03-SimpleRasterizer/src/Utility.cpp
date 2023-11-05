@@ -212,6 +212,41 @@ namespace utility
         return buffer;
     }
 
+    void createImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice,  uint32_t width, uint32_t height, VkFormat format,
+        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* textureImage, VkDeviceMemory* textureImageMemory)
+    {
+        VkImageCreateInfo imageCreateInfo {};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.extent.width = static_cast<uint32_t>(width);
+        imageCreateInfo.extent.height = static_cast<uint32_t>(height);
+        imageCreateInfo.extent.depth = 1;
+        imageCreateInfo.mipLevels = 1;
+        imageCreateInfo.arrayLayers = 1;
+        imageCreateInfo.format = format;
+        imageCreateInfo.tiling = tiling;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCreateInfo.usage = usage;
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+
+        if(vkCreateImage(*logicalDevice, &imageCreateInfo, nullptr, textureImage) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create image.");
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetImageMemoryRequirements(*logicalDevice, *textureImage, &memoryRequirements); 
+
+        VkMemoryAllocateInfo memoryAllocateInfo {};
+        memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits, properties);
+
+        if(vkAllocateMemory(*logicalDevice, &memoryAllocateInfo, nullptr, textureImageMemory) != VK_SUCCESS)
+            throw std::runtime_error("Failed to allocate image memory.");
+        
+        vkBindImageMemory(*logicalDevice, *textureImage, *textureImageMemory, 0);
+    }
+
     VkShaderModule createShaderModule(const std::vector<char> shaderCode, VkDevice* logicalDevice)
     {
         VkShaderModuleCreateInfo createInfo {};

@@ -36,4 +36,13 @@ add_custom_target(copy_shaders ALL
     ${PROJECT_BINARY_DIR}/shaders
     COMMENT "Copying shaders into binary directory."
     )
+
+add_custom_target(copy_textures ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/textures
+    ${PROJECT_BINARY_DIR}/textures
+    COMMENT "Copying textures into binary directory."
+    )
+
 add_dependencies(03_SimpleRasterizer copy_shaders)
+add_dependencies(03_SimpleRasterizer copy_textures)
