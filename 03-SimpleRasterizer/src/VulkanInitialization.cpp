@@ -463,6 +463,9 @@ namespace vulkanInitialization
         utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         utility::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, &stagingBuffer, textureImage, static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight));
         utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        vkDestroyBuffer(*logicalDevice, stagingBuffer, nullptr);
+        vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr);
     }
 
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,

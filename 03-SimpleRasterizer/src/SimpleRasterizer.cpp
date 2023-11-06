@@ -68,6 +68,8 @@ void SimpleRasterizer::cleanUp()
 
 	cleanUpSwapChain();
 
+	vkDestroyImage(logicalDevice, textureImage, nullptr);
+	vkFreeMemory(logicalDevice, textureImageMemory, nullptr);
 	vkDestroyBuffer(logicalDevice, indexBuffer, nullptr);
 	vkFreeMemory(logicalDevice, indexBufferMemory, nullptr);
 	vkDestroyBuffer(logicalDevice, vertexBuffer, nullptr);
