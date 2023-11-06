@@ -432,14 +432,15 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create command pool.");
     }
 
-    void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory)
+    void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory, VkCommandPool* commandPool,
+        VkQueue* graphicsQueue)
     {
         int textureWidth;
-        int textureHeiht;
+        int textureHeight;
         int textureChannels;
 
-        stbi_uc* pixels = stbi_load("../textures/logo.png", &textureWidth, &textureHeiht, &textureChannels, STBI_rgb_alpha);
-        VkDeviceSize imageSize = textureWidth * textureHeiht * 4;
+        stbi_uc* pixels = stbi_load("../textures/logo.png", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
+        VkDeviceSize imageSize = textureWidth * textureHeight * 4;
 
         if(!pixels)
             throw std::runtime_error("Failed to load texture image");
@@ -456,8 +457,12 @@ namespace vulkanInitialization
 
         stbi_image_free(pixels);
 
-        utility::createImage(logicalDevice, physicalDevice, textureWidth, textureHeiht, VK_FORMAT_R8G8B8A8_SRGB,
+        utility::createImage(logicalDevice, physicalDevice, textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+
+        utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        utility::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, &stagingBuffer, textureImage, static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight));
+        utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,

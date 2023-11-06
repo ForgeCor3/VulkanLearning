@@ -260,6 +260,41 @@ namespace utility
         return shaderModule;
     }
 
+    VkCommandBuffer beginSingleTimeCommand(VkDevice* logicalDevice, VkCommandPool* commandPool)
+    {
+        VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
+        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        commandBufferAllocateInfo.commandPool = *commandPool;
+        commandBufferAllocateInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(*logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo commandBufferBeginInfo {};
+        commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+        return commandBuffer;
+    }
+
+    void endSingleTimeCommand(VkDevice* logicalDevice, VkCommandPool* commandPool, VkCommandBuffer* commandBuffer, VkQueue* graphicsQueue)
+    {
+        vkEndCommandBuffer(*commandBuffer);
+
+        VkSubmitInfo submitInfo {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = commandBuffer;
+
+        vkQueueSubmit(*graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(*graphicsQueue);
+
+        vkFreeCommandBuffers(*logicalDevice, *commandPool, 1, commandBuffer);
+    }
+
     void createBuffer(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage,
 		VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
@@ -298,40 +333,59 @@ namespace utility
         throw std::runtime_error("Failed to find suitable memory type.");
     }
 
-    void copyBuffer(VkDevice* logicalDevice_, VkBuffer* srcBuffer, VkBuffer* dstBuffer, VkDeviceSize size, VkCommandPool* commandPool_, VkQueue* queue_)
+    void copyBuffer(VkDevice* logicalDevice, VkBuffer* srcBuffer, VkBuffer* dstBuffer, VkDeviceSize size, VkCommandPool* commandPool, VkQueue* queue)
     {
-        VkCommandBufferAllocateInfo commandBufferAllocateInfo {};
-        commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        commandBufferAllocateInfo.commandPool = *commandPool_;
-        commandBufferAllocateInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(*logicalDevice_, &commandBufferAllocateInfo, &commandBuffer);
-
-        VkCommandBufferBeginInfo commandBufferBeginInfo {};
-        commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+        VkCommandBuffer commandBuffer = beginSingleTimeCommand(logicalDevice, commandPool);
 
         VkBufferCopy copyRegion {};
-        copyRegion.srcOffset = 0;
-        copyRegion.dstOffset = 0;
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, *srcBuffer, *dstBuffer, 1, &copyRegion);
 
-        vkEndCommandBuffer(commandBuffer);
+        endSingleTimeCommand(logicalDevice, commandPool, &commandBuffer, queue);
+    }
 
-        VkSubmitInfo submitInfo {};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
+    void copyBufferToImage(VkDevice* logicalDevice, VkCommandPool* commandPool, VkQueue* graphicsQueue, VkBuffer* buffer, VkImage* image, uint32_t width, uint32_t height)
+    {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommand(logicalDevice, commandPool);
 
-        vkQueueSubmit(*queue_, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(*queue_);
+        VkBufferImageCopy bufferImageCopy {};
+        bufferImageCopy.bufferOffset = 0;
+        bufferImageCopy.bufferRowLength = 0;
+        bufferImageCopy.bufferImageHeight = 0;
+        bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        bufferImageCopy.imageSubresource.mipLevel = 0;
+        bufferImageCopy.imageSubresource.baseArrayLayer = 0;
+        bufferImageCopy.imageSubresource.layerCount = 1;
+        bufferImageCopy.imageOffset = {0, 0, 0};
+        bufferImageCopy.imageExtent = {width, height, 1};
 
-        vkFreeCommandBuffers(*logicalDevice_, *commandPool_, 1, &commandBuffer);
+        vkCmdCopyBufferToImage(commandBuffer, *buffer, *image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
+
+        endSingleTimeCommand(logicalDevice, commandPool, &commandBuffer, graphicsQueue);
+    }
+
+    void transitionImageLayout(VkDevice* logicalDevice, VkCommandPool* commandPool, VkImage* image, VkQueue* graphicsQueue, VkFormat format, 
+        VkImageLayout oldLayout, VkImageLayout newLayout)
+    {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommand(logicalDevice, commandPool);
+
+        VkImageMemoryBarrier imageMemoryBarrier {};
+        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageMemoryBarrier.oldLayout = oldLayout;
+        imageMemoryBarrier.newLayout = newLayout;
+        imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.image = *image;
+        imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+        imageMemoryBarrier.subresourceRange.levelCount = 1;
+        imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+        imageMemoryBarrier.subresourceRange.layerCount = 1; 
+        imageMemoryBarrier.srcAccessMask = 0;
+        imageMemoryBarrier.dstAccessMask = 0;
+
+        vkCmdPipelineBarrier(commandBuffer, 0, 0, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+
+        endSingleTimeCommand(logicalDevice, commandPool, &commandBuffer, graphicsQueue);
     }
 
 } //namespace utility

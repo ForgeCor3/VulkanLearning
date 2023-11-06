@@ -34,7 +34,7 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout);
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
-	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory);
+	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue);
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createUniformBuffers(&logicalDevice, &physicalDevice, uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, MAX_FRAMES_IN_FLIGHT);
