@@ -34,14 +34,17 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout);
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
+
 	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue);
-	vulkanInitialization::createTextureImageView(&logicalDevice, &textureImageView, &textureImage);
+	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage);
 	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler);
+
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createUniformBuffers(&logicalDevice, &physicalDevice, uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, MAX_FRAMES_IN_FLIGHT);
+	
 	vulkanInitialization::createDescriptorPool(&logicalDevice, &descriptorPool, MAX_FRAMES_IN_FLIGHT);
-	vulkanInitialization::createDescriptorSets(&logicalDevice, descriptorSets, &descriptorSetLayout, &descriptorPool, uniformBuffers, MAX_FRAMES_IN_FLIGHT);
+	vulkanInitialization::createDescriptorSets(&logicalDevice, descriptorSets, &descriptorSetLayout, &descriptorPool, uniformBuffers, &textureImageView, &textureSampler, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createCommandBuffers(&logicalDevice, MAX_FRAMES_IN_FLIGHT, commandBuffers, &commandPool);
 	vulkanInitialization::createSyncObjects(&logicalDevice, imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, MAX_FRAMES_IN_FLIGHT);
 }

@@ -251,8 +251,8 @@ namespace utility
         imageCreateInfo.tiling = tiling;
         imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageCreateInfo.usage = usage;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if(vkCreateImage(*logicalDevice, &imageCreateInfo, nullptr, textureImage) != VK_SUCCESS)
             throw std::runtime_error("Failed to create image.");

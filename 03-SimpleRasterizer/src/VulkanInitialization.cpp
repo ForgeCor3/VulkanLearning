@@ -241,15 +241,24 @@ namespace vulkanInitialization
     {
         VkDescriptorSetLayoutBinding uboLayoutBinding {};
         uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboLayoutBinding.pImmutableSamplers = nullptr;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        VkDescriptorSetLayoutBinding samplerLayoutBinding {};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding}; 
 
         VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {};
         descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        descriptorSetLayoutCreateInfo.bindingCount = 1;
-        descriptorSetLayoutCreateInfo.pBindings = &uboLayoutBinding;
+        descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        descriptorSetLayoutCreateInfo.pBindings = bindings.data();
 
         if(vkCreateDescriptorSetLayout(*logicalDevice, &descriptorSetLayoutCreateInfo, nullptr, descriptorSetLayout) != VK_SUCCESS)
             throw std::runtime_error("Failed to create descriptor set layout.");
@@ -451,9 +460,9 @@ namespace vulkanInitialization
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr);
     }
 
-    void createTextureImageView(VkDevice* logicalDevice, VkImageView* textureImageView, VkImage* textureImage)
+    void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage)
     {
-        *textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+        textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,
@@ -499,9 +508,6 @@ namespace vulkanInitialization
         samplerCreateInfo.compareEnable = VK_FALSE;
         samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerCreateInfo.mipLodBias = 0.0f;
-        samplerCreateInfo.minLod = 0.0f;
-        samplerCreateInfo.maxLod = 0.0f;
 
         if(vkCreateSampler(*logicalDevice, &samplerCreateInfo, nullptr, textureSampler) != VK_SUCCESS)
             throw std::runtime_error("Failed to create texture sampler.");
@@ -554,14 +560,16 @@ namespace vulkanInitialization
 
     void createDescriptorPool(VkDevice* logicalDevice, VkDescriptorPool* descriptorPool, const int MAX_FRAMES_IN_FLIGHT)
     {
-        VkDescriptorPoolSize descriptorPoolSize {};
-        descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorPoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        std::array<VkDescriptorPoolSize, 2> descriptorPoolSizes {};
+        descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorPoolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        descriptorPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorPoolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         
         VkDescriptorPoolCreateInfo descriptorPoolCreateInfo {};
         descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptorPoolCreateInfo.poolSizeCount = 1;
-        descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
+        descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(descriptorPoolSizes.size());
+        descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
         descriptorPoolCreateInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
         if(vkCreateDescriptorPool(*logicalDevice, &descriptorPoolCreateInfo, nullptr, descriptorPool) != VK_SUCCESS)
@@ -569,7 +577,7 @@ namespace vulkanInitialization
     }
 
     void createDescriptorSets(VkDevice* logicalDevice, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorSetLayout* descriptorSetLayout, VkDescriptorPool* descriptorPool,
-        std::vector<VkBuffer> uniformBuffers, const int MAX_FRAMES_IN_FLIGHT)
+        std::vector<VkBuffer> uniformBuffers, VkImageView* textureImageView, VkSampler* textureSampler, const int MAX_FRAMES_IN_FLIGHT)
     {
         descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -591,16 +599,31 @@ namespace vulkanInitialization
             descriptorBufferInfo.offset = 0;
             descriptorBufferInfo.range = sizeof(ubo::UniformBufferObject);
 
-            VkWriteDescriptorSet writeDescriptorSet {};
-            writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeDescriptorSet.dstSet = descriptorSets[i];
-            writeDescriptorSet.dstBinding = 0;
-            writeDescriptorSet.dstArrayElement = 0;
-            writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            writeDescriptorSet.descriptorCount = 1;
-            writeDescriptorSet.pBufferInfo = &descriptorBufferInfo;
+            VkDescriptorImageInfo descriptorImageInfo {};
+            descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            descriptorImageInfo.imageView = *textureImageView;
+            descriptorImageInfo.sampler = *textureSampler;
 
-            vkUpdateDescriptorSets(*logicalDevice, 1, &writeDescriptorSet, 0, nullptr);
+            std::array<VkWriteDescriptorSet, 2> writeDescriptorSets {};
+
+            VkWriteDescriptorSet writeDescriptorSet {};
+            writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSets[0].dstSet = descriptorSets[i];
+            writeDescriptorSets[0].dstBinding = 0;
+            writeDescriptorSets[0].dstArrayElement = 0;
+            writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            writeDescriptorSets[0].descriptorCount = 1;
+            writeDescriptorSets[0].pBufferInfo = &descriptorBufferInfo;
+
+            writeDescriptorSets[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            writeDescriptorSets[1].dstSet = descriptorSets[i];
+            writeDescriptorSets[1].dstBinding = 1;
+            writeDescriptorSets[1].dstArrayElement = 0;
+            writeDescriptorSets[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            writeDescriptorSets[1].descriptorCount = 1;
+            writeDescriptorSets[1].pImageInfo = &descriptorImageInfo;
+
+            vkUpdateDescriptorSets(*logicalDevice, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
         }
     }
 
