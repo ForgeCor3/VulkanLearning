@@ -445,6 +445,7 @@ namespace vulkanInitialization
 
         void* data;
         vkMapMemory(*logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, pixels, static_cast<uint32_t>(imageSize));
         vkUnmapMemory(*logicalDevice, stagingBufferMemory);
 
         stbi_image_free(pixels);
@@ -580,7 +581,6 @@ namespace vulkanInitialization
         std::vector<VkBuffer> uniformBuffers, VkImageView* textureImageView, VkSampler* textureSampler, const int MAX_FRAMES_IN_FLIGHT)
     {
         descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-
         std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
 
         VkDescriptorSetAllocateInfo descriptorSetAllocateInfo {};
@@ -606,7 +606,6 @@ namespace vulkanInitialization
 
             std::array<VkWriteDescriptorSet, 2> writeDescriptorSets {};
 
-            VkWriteDescriptorSet writeDescriptorSet {};
             writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             writeDescriptorSets[0].dstSet = descriptorSets[i];
             writeDescriptorSets[0].dstBinding = 0;
