@@ -80,7 +80,10 @@ namespace utility
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 
-        return (indices.isComplete() && swapChainAdequate);
+        VkPhysicalDeviceFeatures physicalDeviceFeatures {};
+        vkGetPhysicalDeviceFeatures(physicalDevice, &physicalDeviceFeatures);
+
+        return (indices.isComplete() && swapChainAdequate && physicalDeviceFeatures.samplerAnisotropy);
     }
 
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface)
@@ -194,6 +197,27 @@ namespace utility
 
             return actualExtent;
         }
+    }
+
+    VkImageView createImageView(VkDevice* logicalDevice, VkImage* image, VkFormat format)
+    {
+        VkImageView imageView;
+
+        VkImageViewCreateInfo imageViewCreateInfo {};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.image = *image;
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = format;
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        if(vkCreateImageView(*logicalDevice, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create image view.");
+
+        return imageView;
     }
 
     std::vector<char> readFile(const std::string& fileName)

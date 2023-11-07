@@ -65,6 +65,8 @@ private:
 
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
+	VkImageView textureImageView;
+	VkSampler textureSampler;
 
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
