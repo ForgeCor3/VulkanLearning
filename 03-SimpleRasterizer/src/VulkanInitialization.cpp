@@ -192,10 +192,10 @@ namespace vulkanInitialization
         swapChainImageViews.resize(swapChainImages.size());
 
         for(int i = 0; i < swapChainImages.size(); ++i)
-            swapChainImageViews[i] = utility::createImageView(logicalDevice, &swapChainImages[i], *swapChainImageFormat);
+            swapChainImageViews[i] = utility::createImageView(logicalDevice, &swapChainImages[i], *swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    void createRenderPass(VkDevice* logicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat)
+    void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat)
     {
         VkAttachmentDescription colorAttachment {};
         colorAttachment.format = *swapChainImageFormat;
@@ -207,27 +207,44 @@ namespace vulkanInitialization
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+        VkAttachmentDescription depthAttachment {};
+        depthAttachment.format = utility::findDepthFormat(physicalDevice);
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
         VkAttachmentReference colorAttachmentRef {};
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthAttachmentRef {};
+        depthAttachmentRef.attachment = 1;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
         VkSubpassDescription subpassDescription {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorAttachmentRef;
+        subpassDescription.pDepthStencilAttachment = &depthAttachmentRef;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        std::array<VkAttachmentDescription, 2> attachmentRefs = {colorAttachment, depthAttachment};
 
         VkRenderPassCreateInfo renderPassCreateInfo {};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassCreateInfo.attachmentCount = 1;
-        renderPassCreateInfo.pAttachments = &colorAttachment;
+        renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachmentRefs.size());
+        renderPassCreateInfo.pAttachments = attachmentRefs.data();
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpassDescription;
         renderPassCreateInfo.dependencyCount = 1;
@@ -341,6 +358,16 @@ namespace vulkanInitialization
         rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
 
+        VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo {};
+        depthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
+        depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
+        depthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
+        depthStencilStateCreateInfo.minDepthBounds = 0.0f;
+        depthStencilStateCreateInfo.maxDepthBounds = 1.0f;
+        depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+
         VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {};
         multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
@@ -374,7 +401,7 @@ namespace vulkanInitialization
         graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
         graphicsPipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
         graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
-        graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+        graphicsPipelineCreateInfo.pDepthStencilState = &depthStencilStateCreateInfo;
         graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
         graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipelineCreateInfo.layout = *pipelineLayout;
@@ -388,20 +415,20 @@ namespace vulkanInitialization
         vkDestroyShaderModule(*_logicalDevice, fragShaderModule, nullptr);
     }
 
-    void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers,
-        std::vector<VkImageView> swapChainImageViews, VkRenderPass* renderPass, VkExtent2D* swapChainExtent)
+    void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView> swapChainImageViews,
+        VkImageView* depthImageView, VkRenderPass* renderPass, VkExtent2D* swapChainExtent)
     {
         swapChainFramebuffers.resize(swapChainImageViews.size());
 
         for(int i = 0; i < swapChainImageViews.size(); ++i)
         {
-            VkImageView attachments[] = {swapChainImageViews[i]};
+            std::array<VkImageView, 2> attachments = {swapChainImageViews[i], *depthImageView};
 
             VkFramebufferCreateInfo framebufferCreateInfo {};
             framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferCreateInfo.renderPass = *renderPass;
-            framebufferCreateInfo.attachmentCount = 1;
-            framebufferCreateInfo.pAttachments = attachments;
+            framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferCreateInfo.pAttachments = attachments.data();
             framebufferCreateInfo.width = swapChainExtent->width;
             framebufferCreateInfo.height = swapChainExtent->height;
             framebufferCreateInfo.layers = 1;
@@ -422,6 +449,15 @@ namespace vulkanInitialization
 
         if(vkCreateCommandPool(*logicalDevice, &commandPoolCreateInfo, nullptr, commandPool) != VK_SUCCESS)
             throw std::runtime_error("Failed to create command pool.");
+    }
+
+    void createDepthResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkExtent2D swapChainExtent,
+        VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView) 
+    {
+        VkFormat depthFormat = utility::findDepthFormat(physicalDevice);
+        utility::createImage(logicalDevice, physicalDevice, swapChainExtent.width, swapChainExtent.height, depthFormat,
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+        depthImageView = utility::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);   
     }
 
     void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory, VkCommandPool* commandPool,
@@ -463,7 +499,7 @@ namespace vulkanInitialization
 
     void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage)
     {
-        textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+        textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,

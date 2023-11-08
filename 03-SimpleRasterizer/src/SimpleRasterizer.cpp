@@ -29,20 +29,18 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createLogicalDevice(&physicalDevice, &surface, &logicalDevice, &graphicsQueue, &presentQueue);
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages, swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
-	vulkanInitialization::createRenderPass(&logicalDevice, &renderPass, &swapChainImageFormat);
+	vulkanInitialization::createRenderPass(&logicalDevice, &physicalDevice, &renderPass, &swapChainImageFormat);
 	vulkanInitialization::createDescriptorSetLayout(&logicalDevice, &descriptorSetLayout);
 	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout);
-	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
-
+	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView);
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
 	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue);
 	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage);
 	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler);
-
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
 	vulkanInitialization::createUniformBuffers(&logicalDevice, &physicalDevice, uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, MAX_FRAMES_IN_FLIGHT);
-	
 	vulkanInitialization::createDescriptorPool(&logicalDevice, &descriptorPool, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createDescriptorSets(&logicalDevice, descriptorSets, &descriptorSetLayout, &descriptorPool, uniformBuffers, &textureImageView, &textureSampler, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createCommandBuffers(&logicalDevice, MAX_FRAMES_IN_FLIGHT, commandBuffers, &commandPool);
@@ -72,7 +70,9 @@ void SimpleRasterizer::cleanUp()
 	vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
 
 	cleanUpSwapChain();
-
+	vkDestroyImageView(logicalDevice, depthImageView, nullptr);
+	vkDestroyImage(logicalDevice, depthImage, nullptr);
+	vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
 	vkDestroySampler(logicalDevice, textureSampler, nullptr);
 	vkDestroyImageView(logicalDevice, textureImageView, nullptr);
 	vkDestroyImage(logicalDevice, textureImage, nullptr);
@@ -124,15 +124,18 @@ void SimpleRasterizer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 	if(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
 		throw std::runtime_error("Failed to begin recording command buffer.");
 
-	VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+	clearValues[1].depthStencil = {1.0f, 0};
+
 	VkRenderPassBeginInfo renderPassBeginInfo {};
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.renderPass = renderPass;
 	renderPassBeginInfo.framebuffer = swapChainFramebuffers[imageIndex];
 	renderPassBeginInfo.renderArea.offset = {0, 0};
 	renderPassBeginInfo.renderArea.extent = swapChainExtent;
-	renderPassBeginInfo.clearValueCount = 1;
-	renderPassBeginInfo.pClearValues = &clearColor;
+	renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassBeginInfo.pClearValues = clearValues.data();
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
@@ -183,7 +186,7 @@ void SimpleRasterizer::recreateSwapChain()
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages,
 		swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
-	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &renderPass, &swapChainExtent);
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
 }
 
 void SimpleRasterizer::updateUniformBuffer(uint32_t currentImage)

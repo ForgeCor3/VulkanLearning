@@ -4,6 +4,7 @@
 #include "Extensions.h"
 #include "VulkanInitialization.h"
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 
@@ -62,6 +63,10 @@ private:
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 
 	VkCommandPool commandPool;
+
+	VkImage depthImage;
+	VkDeviceMemory depthImageMemory;
+	VkImageView depthImageView;
 
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
