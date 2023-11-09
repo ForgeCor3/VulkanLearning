@@ -73,6 +73,8 @@ private:
 	VkImageView textureImageView;
 	VkSampler textureSampler;
 
+	ModelOBJ model;
+
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 	VkBuffer indexBuffer;

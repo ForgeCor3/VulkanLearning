@@ -1,12 +1,15 @@
 #ifndef VULKANINITIALIZATION_H
 #define VULKANINITIALIZATION_H
 
+#include <map>
+
 #include <stb_image.h>
+#include <tiny_obj_loader.h>
 
 #include "Utility.h"
 #include "Extensions.h"
 
-#include "VerticesData.h"
+#include "ModelOBJ.h"
 #include "UniformBufferObject.h"
 
 #ifdef NDEBUG
@@ -51,8 +54,13 @@ namespace vulkanInitialization
         VkQueue* graphicsQueue);
     void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage);
     void createTextureSampler(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSampler* textureSampler);
-    void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
-    void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory, VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice);
+
+    void loadModel(ModelOBJ& model, std::string modelPath);
+
+    void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,
+        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice, ModelOBJ model);
+    void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory,
+        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice, ModelOBJ model);
     void createUniformBuffers(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory,
         std::vector<void*>& unifromBuffersMapped, const int MAX_FRAMES_IN_FLIGHT);
     void createDescriptorPool(VkDevice* logicalDevice, VkDescriptorPool* descriptorPool, const int MAX_FRAMES_IN_FLIGHT);

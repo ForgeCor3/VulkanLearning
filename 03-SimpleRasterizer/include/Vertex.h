@@ -4,7 +4,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 
 #include <array>
 
@@ -44,6 +46,24 @@ struct Vertex
 
 		return attributeDescription;
 	}
+
+	bool operator==(const Vertex& other) const
+	{
+		return position == other.position && color == other.color && texCoord == other.texCoord;
+	}
 };
+
+namespace std
+{
+    template<> struct hash<Vertex>
+	{
+        size_t operator()(Vertex const& vertex) const\
+		{
+            return ((hash<glm::vec3>()(vertex.position) ^
+                   (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+                   (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+}
 
 #endif //VERTEX_H

@@ -1,4 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
+#define TINYOBJLOADER_IMPLEMENTATION
 
 #include "VulkanInitialization.h"
 
@@ -467,7 +468,7 @@ namespace vulkanInitialization
         int textureHeight;
         int textureChannels;
 
-        stbi_uc* pixels = stbi_load("../textures/logo.png", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load("../textures/pantheon.png", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = textureWidth * textureHeight * 4;
 
         if(!pixels)
@@ -502,10 +503,53 @@ namespace vulkanInitialization
         textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,
-        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice)
+    void loadModel(ModelOBJ& model, std::string modelPath)
     {
-        VkDeviceSize bufferSize = sizeof(verticesData::vertices[0]) * verticesData::vertices.size();
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn;
+        std::string err;
+
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath.c_str()))
+            throw std::runtime_error(warn + err);
+
+        std::unordered_map<Vertex, uint32_t> uniqueVertices {};
+
+        for(const auto& shape : shapes)
+        {
+            for(const auto& index : shape.mesh.indices)
+            {
+                Vertex vertex {};
+
+                vertex.position = {
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]
+                };
+
+                vertex.texCoord = {
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                };
+
+                vertex.color = {1.0f, 1.0f, 1.0f};
+
+                if(uniqueVertices.count(vertex) == 0)
+                {
+                    uniqueVertices[vertex] = static_cast<uint32_t>(model.vertices.size());
+                    model.vertices.push_back(vertex);
+                }
+
+                model.indices.push_back(uniqueVertices[vertex]);
+            }
+        }
+    }
+
+    void createVertexBuffer(VkDevice* logicalDevice, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory,
+        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice, ModelOBJ model)
+    {
+        VkDeviceSize bufferSize = sizeof(model.vertices[0]) * model.vertices.size();
 	
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -514,7 +558,7 @@ namespace vulkanInitialization
 
         void* data;
         vkMapMemory(*logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, verticesData::vertices.data(), (size_t)bufferSize);
+        memcpy(data, model.vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(*logicalDevice, stagingBufferMemory);
 
         utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -551,9 +595,9 @@ namespace vulkanInitialization
     }
 
     void createIndexBuffer(VkDevice* logicalDevice, VkBuffer* indexBuffer, VkDeviceMemory* indexBufferMemory,
-        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice)
+        VkCommandPool* commandPool, VkQueue* queue, VkPhysicalDevice* physicalDevice, ModelOBJ model)
     {
-        VkDeviceSize bufferSize = sizeof(verticesData::indices[0]) * verticesData::indices.size();
+        VkDeviceSize bufferSize = sizeof(model.indices[0]) * model.indices.size();
 	
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -562,7 +606,7 @@ namespace vulkanInitialization
 
         void* data;
         vkMapMemory(*logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, verticesData::indices.data(), (size_t)bufferSize);
+        memcpy(data, model.indices.data(), (size_t)bufferSize);
         vkUnmapMemory(*logicalDevice, stagingBufferMemory);
 
         utility::createBuffer(logicalDevice, physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,

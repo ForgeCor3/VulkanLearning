@@ -38,8 +38,9 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue);
 	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage);
 	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler);
-	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
-	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice);
+	vulkanInitialization::loadModel(model, "../models/pantheon.obj");
+	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice, model);
+	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice, model);
 	vulkanInitialization::createUniformBuffers(&logicalDevice, &physicalDevice, uniformBuffers, uniformBuffersMemory, uniformBuffersMapped, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createDescriptorPool(&logicalDevice, &descriptorPool, MAX_FRAMES_IN_FLIGHT);
 	vulkanInitialization::createDescriptorSets(&logicalDevice, descriptorSets, &descriptorSetLayout, &descriptorPool, uniformBuffers, &textureImageView, &textureSampler, MAX_FRAMES_IN_FLIGHT);
@@ -158,9 +159,9 @@ void SimpleRasterizer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 	VkBuffer vertexBuffers[] = {vertexBuffer};
 	VkDeviceSize offsets[] = {0};
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(verticesData::indices.size()), 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model.indices.size()), 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
