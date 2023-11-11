@@ -193,7 +193,7 @@ namespace vulkanInitialization
         swapChainImageViews.resize(swapChainImages.size());
 
         for(int i = 0; i < swapChainImages.size(); ++i)
-            swapChainImageViews[i] = utility::createImageView(logicalDevice, &swapChainImages[i], *swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+            swapChainImageViews[i] = utility::createImageView(logicalDevice, &swapChainImages[i], *swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     }
 
     void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat)
@@ -457,12 +457,12 @@ namespace vulkanInitialization
     {
         VkFormat depthFormat = utility::findDepthFormat(physicalDevice);
         utility::createImage(logicalDevice, physicalDevice, swapChainExtent.width, swapChainExtent.height, depthFormat,
-            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-        depthImageView = utility::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);   
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory, 1);
+        depthImageView = utility::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
     }
 
     void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory, VkCommandPool* commandPool,
-        VkQueue* graphicsQueue)
+        VkQueue* graphicsQueue, uint32_t& mipLevels)
     {
         int textureWidth;
         int textureHeight;
@@ -470,6 +470,8 @@ namespace vulkanInitialization
 
         stbi_uc* pixels = stbi_load("../textures/pantheon.png", &textureWidth, &textureHeight, &textureChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = textureWidth * textureHeight * 4;
+
+        mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(textureWidth, textureHeight))));
 
         if(!pixels)
             throw std::runtime_error("Failed to load texture image");
@@ -488,19 +490,21 @@ namespace vulkanInitialization
         stbi_image_free(pixels);
 
         utility::createImage(logicalDevice, physicalDevice, textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB,
-            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            textureImage, textureImageMemory, mipLevels);
 
-        utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
         utility::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, &stagingBuffer, textureImage, static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight));
-        utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        
+        utility::generateMipmaps(logicalDevice, physicalDevice, commandPool, VK_FORMAT_R8G8B8A8_SRGB, textureImage, textureWidth, textureHeight, mipLevels, graphicsQueue);
 
         vkDestroyBuffer(*logicalDevice, stagingBuffer, nullptr);
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr);
     }
 
-    void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage)
+    void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage, uint32_t mipLevels)
     {
-        textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        textureImageView = utility::createImageView(logicalDevice, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
     }
 
     void loadModel(ModelOBJ& model, std::string modelPath)
@@ -570,7 +574,7 @@ namespace vulkanInitialization
         vkFreeMemory(*logicalDevice, stagingBufferMemory, nullptr);
     }
 
-    void createTextureSampler(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSampler* textureSampler)
+    void createTextureSampler(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSampler* textureSampler, uint32_t mipLevels)
     {
         VkPhysicalDeviceProperties physicalDeviceProperties {};
         vkGetPhysicalDeviceProperties(*physicalDevice, &physicalDeviceProperties);
@@ -589,6 +593,9 @@ namespace vulkanInitialization
         samplerCreateInfo.compareEnable = VK_FALSE;
         samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
         samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = static_cast<float>(mipLevels);
+        samplerCreateInfo.mipLodBias = 0.0f;
 
         if(vkCreateSampler(*logicalDevice, &samplerCreateInfo, nullptr, textureSampler) != VK_SUCCESS)
             throw std::runtime_error("Failed to create texture sampler.");

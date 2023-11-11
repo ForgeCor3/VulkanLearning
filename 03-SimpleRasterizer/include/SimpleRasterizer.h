@@ -71,6 +71,7 @@ private:
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
 	VkImageView textureImageView;
+	uint32_t mipLevels;
 	VkSampler textureSampler;
 
 	ModelOBJ model;

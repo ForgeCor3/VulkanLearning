@@ -35,9 +35,9 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
 	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView);
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
-	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue);
-	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage);
-	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler);
+	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue, mipLevels);
+	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage, mipLevels);
+	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler, mipLevels);
 	vulkanInitialization::loadModel(model, "../models/pantheon.obj");
 	vulkanInitialization::createVertexBuffer(&logicalDevice, &vertexBuffer, &vertexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice, model);
 	vulkanInitialization::createIndexBuffer(&logicalDevice, &indexBuffer, &indexBufferMemory, &commandPool, &graphicsQueue, &physicalDevice, model);

@@ -51,9 +51,9 @@ namespace vulkanInitialization
     void createDepthResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkExtent2D swapChainExtent,
         VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView);
     void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory, VkCommandPool* commandPool,
-        VkQueue* graphicsQueue);
-    void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage);
-    void createTextureSampler(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSampler* textureSampler);
+        VkQueue* graphicsQueue, uint32_t& mipLevels);
+    void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage, uint32_t mipLevels);
+    void createTextureSampler(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSampler* textureSampler, uint32_t mipLevels);
 
     void loadModel(ModelOBJ& model, std::string modelPath);
 
