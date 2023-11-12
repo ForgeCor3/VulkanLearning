@@ -187,6 +187,7 @@ void SimpleRasterizer::recreateSwapChain()
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages,
 		swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
+	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView);
 	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
 }
 
