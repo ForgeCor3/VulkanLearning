@@ -33,23 +33,25 @@ namespace vulkanInitialization
 
     void createSurface(VkInstance* instance, GLFWwindow* window, VkSurfaceKHR* surface);
 
-    void pickPhysicalDevice(VkInstance* instance, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
+    void pickPhysicalDevice(VkInstance* instance, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, VkSampleCountFlagBits& msaaSamples);
     void createLogicalDevice(VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, VkDevice* logicalDevice, VkQueue* graphicsQueue, VkQueue* presentQueue);
 
     void createSwapChain(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, GLFWwindow* window, VkSwapchainKHR* swapChain,
         std::vector<VkImage>& swapChainImages, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent);
     void createSwapChainImageViews(VkDevice* logicalDevice, std::vector<VkImageView>& swapChainImageViews, std::vector<VkImage> swapChainImages, VkFormat* swapChainImageFormat);
 
-    void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat);
+    void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat, VkSampleCountFlagBits msaaSamples);
     void createDescriptorSetLayout(VkDevice* logicalDevice, VkDescriptorSetLayout* descriptorSetLayout);
     void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout,
-        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout);
+        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout, VkSampleCountFlagBits msaaSamples);
 
     void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView> swapChainImageViews,
-        VkImageView* depthImageView, VkRenderPass* renderPass, VkExtent2D* swapChainExtent);
+        VkImageView* depthImageView, VkImageView* colorImageView, VkRenderPass* renderPass, VkExtent2D* swapChainExtent);
     void createCommandPool(VkDevice* logicalDevice, VkCommandPool* commandPool, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface);
+    void createColorResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkFormat* swapChainImageFormat, VkExtent2D* swapChainExtent, VkSampleCountFlagBits msaaSamples,
+        VkImage* colorImage, VkDeviceMemory* colorImageMemory, VkImageView* colorImageView);
     void createDepthResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkExtent2D swapChainExtent,
-        VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView);
+        VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView, VkSampleCountFlagBits msaaSamples);
     void createTextureImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkImage* textureImage, VkDeviceMemory* textureImageMemory, VkCommandPool* commandPool,
         VkQueue* graphicsQueue, uint32_t& mipLevels);
     void createTextureImageView(VkDevice* logicalDevice, VkImageView& textureImageView, VkImage* textureImage, uint32_t mipLevels);

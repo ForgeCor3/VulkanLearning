@@ -25,16 +25,17 @@ void SimpleRasterizer::initVulkan()
 	vulkanInitialization::createInstance(&instance);
 	vulkanInitialization::setupDebugMessenger(&instance, &debugMessenger);
 	vulkanInitialization::createSurface(&instance, window, &surface);
-	vulkanInitialization::pickPhysicalDevice(&instance, &physicalDevice, &surface);
+	vulkanInitialization::pickPhysicalDevice(&instance, &physicalDevice, &surface, msaaSamples);
 	vulkanInitialization::createLogicalDevice(&physicalDevice, &surface, &logicalDevice, &graphicsQueue, &presentQueue);
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages, swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
-	vulkanInitialization::createRenderPass(&logicalDevice, &physicalDevice, &renderPass, &swapChainImageFormat);
+	vulkanInitialization::createRenderPass(&logicalDevice, &physicalDevice, &renderPass, &swapChainImageFormat, msaaSamples);
 	vulkanInitialization::createDescriptorSetLayout(&logicalDevice, &descriptorSetLayout);
-	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout);
+	vulkanInitialization::createGraphicsPipeline(&logicalDevice, &graphicsPipeline, &swapChainExtent, &pipelineLayout, &renderPass, &descriptorSetLayout, msaaSamples);
 	vulkanInitialization::createCommandPool(&logicalDevice, &commandPool, &physicalDevice, &surface);
-	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView);
-	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
+	vulkanInitialization::createColorResources(&logicalDevice, &physicalDevice, &swapChainImageFormat, &swapChainExtent, msaaSamples, &colorImage, &colorImageMemory, &colorImageView);
+	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView, msaaSamples);
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &colorImageView, &renderPass, &swapChainExtent);
 	vulkanInitialization::createTextureImage(&logicalDevice, &physicalDevice, &textureImage, &textureImageMemory, &commandPool, &graphicsQueue, mipLevels);
 	vulkanInitialization::createTextureImageView(&logicalDevice, textureImageView, &textureImage, mipLevels);
 	vulkanInitialization::createTextureSampler(&logicalDevice, &physicalDevice, &textureSampler, mipLevels);
@@ -70,7 +71,12 @@ void SimpleRasterizer::cleanUp()
 	
 	vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
 
+	vkDestroyImageView(logicalDevice, colorImageView, nullptr);
+	vkDestroyImage(logicalDevice, colorImage, nullptr);
+	vkFreeMemory(logicalDevice, colorImageMemory, nullptr);
+
 	cleanUpSwapChain();
+	
 	vkDestroyImageView(logicalDevice, depthImageView, nullptr);
 	vkDestroyImage(logicalDevice, depthImage, nullptr);
 	vkFreeMemory(logicalDevice, depthImageMemory, nullptr);
@@ -187,8 +193,9 @@ void SimpleRasterizer::recreateSwapChain()
 	vulkanInitialization::createSwapChain(&logicalDevice, &physicalDevice, &surface, window, &swapChain, swapChainImages,
 		swapChainImageFormat, swapChainExtent);
 	vulkanInitialization::createSwapChainImageViews(&logicalDevice, swapChainImageViews, swapChainImages, &swapChainImageFormat);
-	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView);
-	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &renderPass, &swapChainExtent);
+	vulkanInitialization::createColorResources(&logicalDevice, &physicalDevice, &swapChainImageFormat, &swapChainExtent, msaaSamples, &colorImage, &colorImageMemory, &colorImageView);
+	vulkanInitialization::createDepthResources(&logicalDevice, &physicalDevice, swapChainExtent, &depthImage, &depthImageMemory, depthImageView, msaaSamples);
+	vulkanInitialization::createFramebuffers(&logicalDevice, swapChainFramebuffers, swapChainImageViews, &depthImageView, &colorImageView, &renderPass, &swapChainExtent);
 }
 
 void SimpleRasterizer::updateUniformBuffer(uint32_t currentImage)

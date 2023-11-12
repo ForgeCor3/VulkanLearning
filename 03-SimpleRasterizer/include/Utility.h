@@ -36,13 +36,14 @@ namespace utility
 
     VkFormat findSupportedFormat(VkPhysicalDevice* physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     VkFormat findDepthFormat(VkPhysicalDevice* physicalDevice);
+    VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice* physicalDevice);
 
     VkImageView createImageView(VkDevice* logicalDevice, VkImage* image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
     std::vector<char> readFile(const std::string& fileName);
     void createImage(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice,  uint32_t width, uint32_t height, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* textureImage, VkDeviceMemory* textureImageMemory,
-        uint32_t mipLevels);
+        uint32_t mipLevels, VkSampleCountFlagBits numSamples);
     void generateMipmaps(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkCommandPool* commandPool, VkFormat format, VkImage* image, uint32_t textureWidth, uint32_t textureHeight, uint32_t mipLevels,
         VkQueue* graphicsQueue);
     VkShaderModule createShaderModule(const std::vector<char> shaderCode, VkDevice* logicalDevice);

@@ -63,7 +63,7 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create window surface.");
     }
 
-    void pickPhysicalDevice(VkInstance* instance, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface)
+    void pickPhysicalDevice(VkInstance* instance, VkPhysicalDevice* physicalDevice, VkSurfaceKHR* surface, VkSampleCountFlagBits& msaaSamples)
     {
         uint32_t deviceCount = 0;
         vkEnumeratePhysicalDevices(*instance, &deviceCount, nullptr);
@@ -79,6 +79,7 @@ namespace vulkanInitialization
             if(utility::isPhysicalDeviceSuitable(device, surface, deviceExtensions))
             {
                 *physicalDevice = device;
+                msaaSamples = utility::getMaxUsableSampleCount(&device);
                 break;
             }
             else
@@ -108,6 +109,7 @@ namespace vulkanInitialization
         
         VkPhysicalDeviceFeatures physicalDeviceFeatures {};
         physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
+        physicalDeviceFeatures.sampleRateShading = VK_TRUE;
 
         VkDeviceCreateInfo createInfo {};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -196,27 +198,37 @@ namespace vulkanInitialization
             swapChainImageViews[i] = utility::createImageView(logicalDevice, &swapChainImages[i], *swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
     }
 
-    void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat)
+    void createRenderPass(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkRenderPass* renderPass, VkFormat* swapChainImageFormat, VkSampleCountFlagBits msaaSamples)
     {
         VkAttachmentDescription colorAttachment {};
         colorAttachment.format = *swapChainImageFormat;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.samples = msaaSamples;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentDescription depthAttachment {};
         depthAttachment.format = utility::findDepthFormat(physicalDevice);
-        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.samples = msaaSamples;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentDescription colorAttachmentResolve {};
+        colorAttachmentResolve.format = *swapChainImageFormat;
+        colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef {};
         colorAttachmentRef.attachment = 0;
@@ -226,11 +238,16 @@ namespace vulkanInitialization
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+        VkAttachmentReference colorAttachmentResolveRef {};
+        colorAttachmentResolveRef.attachment = 2;
+        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
         VkSubpassDescription subpassDescription {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpassDescription.colorAttachmentCount = 1;
         subpassDescription.pColorAttachments = &colorAttachmentRef;
         subpassDescription.pDepthStencilAttachment = &depthAttachmentRef;
+        subpassDescription.pResolveAttachments = &colorAttachmentResolveRef;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -240,7 +257,7 @@ namespace vulkanInitialization
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 2> attachmentRefs = {colorAttachment, depthAttachment};
+        std::array<VkAttachmentDescription, 3> attachmentRefs = {colorAttachment, depthAttachment, colorAttachmentResolve};
 
         VkRenderPassCreateInfo renderPassCreateInfo {};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -282,14 +299,14 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create descriptor set layout.");
     }
 
-    void createGraphicsPipeline(VkDevice* _logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout,
-        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout)
+    void createGraphicsPipeline(VkDevice* logicalDevice, VkPipeline* graphicsPipeline, VkExtent2D* swapChainExtent, VkPipelineLayout* pipelineLayout,
+        VkRenderPass* renderPass, VkDescriptorSetLayout* descriptorSetLayout, VkSampleCountFlagBits msaaSamples)
     {
         auto vertShaderCode = utility::readFile("../shaders/vert.spv");
         auto fragShaderCode = utility::readFile("../shaders/frag.spv");
 
-        VkShaderModule vertShaderModule = utility::createShaderModule(vertShaderCode, _logicalDevice);
-        VkShaderModule fragShaderModule = utility::createShaderModule(fragShaderCode, _logicalDevice);
+        VkShaderModule vertShaderModule = utility::createShaderModule(vertShaderCode, logicalDevice);
+        VkShaderModule fragShaderModule = utility::createShaderModule(fragShaderCode, logicalDevice);
 
         VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo {};
         vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -371,8 +388,9 @@ namespace vulkanInitialization
 
         VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo {};
         multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
-        multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampleStateCreateInfo.sampleShadingEnable = VK_TRUE;
+        multisampleStateCreateInfo.minSampleShading = 0.2f;
+        multisampleStateCreateInfo.rasterizationSamples = msaaSamples;
 
         VkPipelineColorBlendAttachmentState colorBlendAttachmentState {};
         colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
@@ -390,7 +408,7 @@ namespace vulkanInitialization
         layoutCreateInfo.setLayoutCount = 1;
         layoutCreateInfo.pSetLayouts = descriptorSetLayout;
         
-        if(vkCreatePipelineLayout(*_logicalDevice, &layoutCreateInfo, nullptr, pipelineLayout) != VK_SUCCESS)
+        if(vkCreatePipelineLayout(*logicalDevice, &layoutCreateInfo, nullptr, pipelineLayout) != VK_SUCCESS)
             throw std::runtime_error("Failed to create pipeline layout.");
 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
@@ -409,21 +427,21 @@ namespace vulkanInitialization
         graphicsPipelineCreateInfo.renderPass = *renderPass;
         graphicsPipelineCreateInfo.subpass = 0;
 
-        if(vkCreateGraphicsPipelines(*_logicalDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(*logicalDevice, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, graphicsPipeline) != VK_SUCCESS)
                 throw std::runtime_error("Failed to create graphics pipeline.");
 
-        vkDestroyShaderModule(*_logicalDevice, vertShaderModule, nullptr);
-        vkDestroyShaderModule(*_logicalDevice, fragShaderModule, nullptr);
+        vkDestroyShaderModule(*logicalDevice, vertShaderModule, nullptr);
+        vkDestroyShaderModule(*logicalDevice, fragShaderModule, nullptr);
     }
 
     void createFramebuffers(VkDevice* logicalDevice, std::vector<VkFramebuffer>& swapChainFramebuffers, std::vector<VkImageView> swapChainImageViews,
-        VkImageView* depthImageView, VkRenderPass* renderPass, VkExtent2D* swapChainExtent)
+        VkImageView* depthImageView, VkImageView* colorImageView, VkRenderPass* renderPass, VkExtent2D* swapChainExtent)
     {
         swapChainFramebuffers.resize(swapChainImageViews.size());
 
         for(int i = 0; i < swapChainImageViews.size(); ++i)
         {
-            std::array<VkImageView, 2> attachments = {swapChainImageViews[i], *depthImageView};
+            std::array<VkImageView, 3> attachments = {*colorImageView, *depthImageView, swapChainImageViews[i]};
 
             VkFramebufferCreateInfo framebufferCreateInfo {};
             framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -452,12 +470,24 @@ namespace vulkanInitialization
             throw std::runtime_error("Failed to create command pool.");
     }
 
+    void createColorResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkFormat* swapChainImageFormat, VkExtent2D* swapChainExtent, VkSampleCountFlagBits msaaSamples,
+        VkImage* colorImage, VkDeviceMemory* colorImageMemory, VkImageView* colorImageView)
+    {
+        VkFormat colorFormat = *swapChainImageFormat;
+
+        utility::createImage(logicalDevice, physicalDevice, swapChainExtent->width, swapChainExtent->height, colorFormat,
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory, 1, msaaSamples);
+        
+        *colorImageView = utility::createImageView(logicalDevice, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+    }
+
     void createDepthResources(VkDevice* logicalDevice, VkPhysicalDevice* physicalDevice, VkExtent2D swapChainExtent,
-        VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView) 
+        VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView& depthImageView, VkSampleCountFlagBits msaaSamples)
     {
         VkFormat depthFormat = utility::findDepthFormat(physicalDevice);
         utility::createImage(logicalDevice, physicalDevice, swapChainExtent.width, swapChainExtent.height, depthFormat,
-            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory, 1);
+            VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory, 1, msaaSamples);
         depthImageView = utility::createImageView(logicalDevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
     }
 
@@ -491,7 +521,7 @@ namespace vulkanInitialization
 
         utility::createImage(logicalDevice, physicalDevice, textureWidth, textureHeight, VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            textureImage, textureImageMemory, mipLevels);
+            textureImage, textureImageMemory, mipLevels, VK_SAMPLE_COUNT_1_BIT);
 
         utility::transitionImageLayout(logicalDevice, commandPool, textureImage, graphicsQueue, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
         utility::copyBufferToImage(logicalDevice, commandPool, graphicsQueue, &stagingBuffer, textureImage, static_cast<uint32_t>(textureWidth), static_cast<uint32_t>(textureHeight));

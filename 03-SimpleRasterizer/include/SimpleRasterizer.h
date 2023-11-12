@@ -64,6 +64,10 @@ private:
 
 	VkCommandPool commandPool;
 
+	VkImage colorImage;
+	VkDeviceMemory colorImageMemory;
+	VkImageView colorImageView;
+
 	VkImage depthImage;
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
@@ -72,6 +76,7 @@ private:
 	VkDeviceMemory textureImageMemory;
 	VkImageView textureImageView;
 	uint32_t mipLevels;
+	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkSampler textureSampler;
 
 	ModelOBJ model;
