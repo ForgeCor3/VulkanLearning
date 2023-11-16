@@ -2,8 +2,6 @@
 #define APPLICATION_H
 
 #include "Window.h"
-#include <stdexcept>
-
 
 class Application final
 {
