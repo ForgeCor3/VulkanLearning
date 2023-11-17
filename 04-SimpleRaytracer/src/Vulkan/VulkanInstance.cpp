@@ -26,5 +26,3 @@ VulkanInstance::VulkanInstance(const class Window& window)
     if(vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS)
         throw std::runtime_error("Failed to create instance.");
 }
-
-void VulkanInstance::terminate() { vkDestroyInstance(instance, nullptr); }

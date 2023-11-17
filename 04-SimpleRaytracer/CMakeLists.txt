@@ -15,9 +15,15 @@ set(HEADERPATHS
     ../include/vulkan/
 )
 
-link_directories(04-SimpleRaytracer ../lib/glfw3 ../lib/vulkan)
+link_directories(04-SimpleRaytracer
+    ../lib/glfw3
+    ../lib/vulkan
+)
 
 include_directories(04-SimpleRaytracer ${HEADERPATHS})
 add_executable(04-SimpleRaytracer ${SOURCES})
 
-target_link_libraries(04-SimpleRaytracer glfw3 vulkan-1)
+target_link_libraries(04-SimpleRaytracer
+    glfw3
+    vulkan-1
+)

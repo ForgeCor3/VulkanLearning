@@ -1,13 +1,10 @@
 #ifndef VULKANINSTANCE_H
 #define VULKANINSTANCE_H
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "Window.h"
 
 #include <stdexcept>
 #include <vector>
-
-#include "Window.h"
 
 class VulkanInstance final
 {
@@ -19,9 +16,7 @@ public:
     VulkanInstance() = delete;
     VulkanInstance(const class Window& window);
     
-    ~VulkanInstance() { };
-
-    void terminate();
+    ~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
 };
 
 #endif // VULKANINSTANCE_H

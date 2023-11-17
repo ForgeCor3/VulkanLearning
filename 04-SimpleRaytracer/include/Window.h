@@ -1,6 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
@@ -18,12 +19,10 @@ public:
     Window() = delete;
     Window(const WindowConfig windowConfig);
 
-    ~Window() {};
+    ~Window() { glfwDestroyWindow(window); }
 
     GLFWwindow* getWindow() const;
     std::vector<const char*> getRequiredInstanceExtensions() const;
-
-    void terminate() { glfwDestroyWindow(window); };
 };
 
 #endif // WINDOW_H

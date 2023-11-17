@@ -2,6 +2,7 @@
 #define APPLICATION_H
 
 #include <memory>
+#include <iostream>
 
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
