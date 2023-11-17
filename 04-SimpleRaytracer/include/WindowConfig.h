@@ -12,13 +12,16 @@ struct WindowConfig final
     bool isResizable;
     bool isFullscreen;
 
-    WindowConfig operator=(const WindowConfig windowConfig)
+    WindowConfig& operator=(const WindowConfig& windowConfig)
     {
-        windowTitle = windowConfig.windowTitle;
-        windowWidth = windowConfig.windowWidth;
-        windowHeight = windowConfig.windowHeight;
-        isResizable = windowConfig.isResizable;
-        isFullscreen = windowConfig.isFullscreen;
+        if(this != &windowConfig)
+        {
+            windowTitle = windowConfig.windowTitle;
+            windowWidth = windowConfig.windowWidth;
+            windowHeight = windowConfig.windowHeight;
+            isResizable = windowConfig.isResizable;
+            isFullscreen = windowConfig.isFullscreen;
+        }
 
         return *this;
     }

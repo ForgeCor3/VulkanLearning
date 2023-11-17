@@ -1,6 +1,10 @@
 #include "Application.h"
 
-Application::Application(const WindowConfig& windowConfig) : window(windowConfig) {}
+Application::Application(const WindowConfig& windowConfig)
+{
+    window.reset(new Window(windowConfig));
+    instance.reset(new VulkanInstance(*window));
+}
 
 void Application::run()
 {
@@ -9,7 +13,7 @@ void Application::run()
 
 void Application::mainloop()
 {
-    while (!glfwWindowShouldClose(window.getWindow()))
+    while (!glfwWindowShouldClose(window.get()->getWindow()))
     {
         glfwPollEvents();
     }
@@ -18,6 +22,7 @@ void Application::mainloop()
 
 void Application::terminate()
 {
-    window.terminate();
+    instance.get()->terminate();
+    window.get()->terminate();
     glfwTerminate();
 }
