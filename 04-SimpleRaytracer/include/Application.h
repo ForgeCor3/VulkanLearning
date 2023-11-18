@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <iostream>
+#include <vector>
 
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
@@ -13,9 +14,11 @@ private:
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanInstance> instance;
 
+    std::vector<const char*> validationLayers;
+
 public:
     Application() = delete;
-    Application(const WindowConfig& windowConfig);
+    Application(const WindowConfig& windowConfig, bool validationLayersEnabled);
 
     ~Application() { };
 

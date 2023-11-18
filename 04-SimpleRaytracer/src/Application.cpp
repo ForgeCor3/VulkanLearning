@@ -1,15 +1,17 @@
 #include "Application.h"
 
-void ErrorCallback(int, const char* err_str)
-{
-    std::cout << "GLFW Error: " << err_str << std::endl;
-}
+void error_callback(int, const char* err_str) { std::cout << "GLFW Error: " << err_str << std::endl; }
 
-Application::Application(const WindowConfig& windowConfig)
+Application::Application(const WindowConfig& windowConfig, bool validationLayersEnabled)
 {
-    glfwSetErrorCallback(ErrorCallback);
+    glfwSetErrorCallback(error_callback);
+
+    validationLayers = validationLayersEnabled ?
+        std::vector<const char*>{"VK_LAYER_KHRONOS_validation"} :
+        std::vector<const char*>{};
+
     window.reset(new Window(windowConfig));
-    instance.reset(new VulkanInstance(*window));
+    instance.reset(new VulkanInstance(*window, validationLayers));
 }
 
 void Application::run()
@@ -28,5 +30,7 @@ void Application::mainloop()
 
 void Application::terminate()
 {
+    instance.release();
+    window.release();
     glfwTerminate();
 }

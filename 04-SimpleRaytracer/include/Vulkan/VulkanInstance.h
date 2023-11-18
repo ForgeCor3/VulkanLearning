@@ -1,6 +1,7 @@
 #ifndef VULKANINSTANCE_H
 #define VULKANINSTANCE_H
 
+#include "VulkanUtils.h"
 #include "Window.h"
 
 #include <stdexcept>
@@ -9,12 +10,15 @@
 class VulkanInstance final
 {
 private:
+    void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
+
     VkInstance instance;
     std::vector<VkExtensionProperties> extensions;
+    std::vector<VkLayerProperties> layers;
 
 public:
     VulkanInstance() = delete;
-    VulkanInstance(const class Window& window);
+    VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers);
     
     ~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
 };
