@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "GlobUtils.h"
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanDebugUtilsMessenger.h"
@@ -12,6 +13,8 @@
 class Application final
 {
 private:
+    DISABLE_COPY_AND_MOVE(Application)
+
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanInstance> instance;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
@@ -22,7 +25,7 @@ public:
     Application() = delete;
     Application(const WindowConfig& windowConfig, bool validationLayersEnabled);
 
-    ~Application() { };
+    ~Application();
 
     void run();
     void mainloop();

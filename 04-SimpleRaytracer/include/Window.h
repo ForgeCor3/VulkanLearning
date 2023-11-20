@@ -8,10 +8,13 @@
 #include <vector>
 
 #include "WindowConfig.h"
+#include "GlobUtils.h"
 
 class Window final
 {
 private:
+    DISABLE_COPY_AND_MOVE(Window)
+
     GLFWwindow* window;
     WindowConfig windowConfig;
 

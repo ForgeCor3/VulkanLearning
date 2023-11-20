@@ -1,10 +1,10 @@
 #ifndef VULKANUTILS_H
 #define VULKANUTILS_H
 
-#include <vector>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include <vector>
 
 template <typename T>
 inline void EnumerateVector(VkResult (*enumerationFunction)(uint32_t*, T*), std::vector<T>& data)

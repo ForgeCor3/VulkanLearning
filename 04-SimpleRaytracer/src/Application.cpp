@@ -15,6 +15,14 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
     debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
 }
 
+Application::~Application()
+{
+    debugUtilsMessenger.release();
+    instance.release();
+    window.release();
+    glfwTerminate();
+}
+
 void Application::run()
 {
     mainloop();
@@ -26,10 +34,4 @@ void Application::mainloop()
     {
         glfwPollEvents();
     }
-    terminate();
-}
-
-void Application::terminate()
-{
-    glfwTerminate();    
 }

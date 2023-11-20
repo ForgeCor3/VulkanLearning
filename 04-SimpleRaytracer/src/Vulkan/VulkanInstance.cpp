@@ -30,6 +30,8 @@ VulkanInstance::VulkanInstance(const class Window& window, std::vector<const cha
         throw std::runtime_error("Failed to create instance.");
 }
 
+ VulkanInstance::~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
+
 void VulkanInstance::checkValidationLayerSupport(std::vector<const char*>& validationLayers)
 {
     std::vector<VkLayerProperties> availableLayers;

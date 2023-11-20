@@ -1,15 +1,18 @@
 #ifndef VULKANINSTANCE_H
 #define VULKANINSTANCE_H
 
-#include "VulkanUtils.h"
-#include "Window.h"
-
 #include <stdexcept>
 #include <vector>
+
+#include "GlobUtils.h"
+#include "VulkanUtils.h"
+#include "Window.h"
 
 class VulkanInstance final
 {
 private:
+    DISABLE_COPY_AND_MOVE(VulkanInstance)
+
     void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
 
     VkInstance instance;
@@ -20,7 +23,7 @@ public:
     VulkanInstance() = delete;
     VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers);
     
-    ~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
+    ~VulkanInstance();
 
     VkInstance& getInstance() { return instance; }
 };
