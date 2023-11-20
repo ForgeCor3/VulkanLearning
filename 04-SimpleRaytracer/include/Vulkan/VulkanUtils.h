@@ -16,14 +16,12 @@ inline void EnumerateVector(VkResult (*enumerationFunction)(uint32_t*, T*), std:
 }
 
 template <typename T>
-inline std::vector<T> EnumerateVector(VkResult (*enumerationFunction)(const char*, uint32_t*, T*))
+inline void EnumerateVector(VkResult (*enumerationFunction)(const char*, uint32_t*, T*), std::vector<T>& data)
 {
     uint32_t count = 0;
     enumerationFunction(&count, nullptr);
-    std::vector<T> result(count);
-    enumerationFunction(&count, result);
-    
-    return result;
+    data.resize(count);
+    enumerationFunction(&count, data);
 }
 
 #endif // VULKANUTILS_H

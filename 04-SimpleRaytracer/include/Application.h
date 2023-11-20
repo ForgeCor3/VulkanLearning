@@ -7,12 +7,14 @@
 
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
+#include "Vulkan/VulkanDebugUtilsMessenger.h"
 
 class Application final
 {
 private:
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanInstance> instance;
+    std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
 
     std::vector<const char*> validationLayers;
 

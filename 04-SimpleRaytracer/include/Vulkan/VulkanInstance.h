@@ -21,6 +21,8 @@ public:
     VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers);
     
     ~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
+
+    VkInstance& getInstance() { return instance; }
 };
 
 #endif // VULKANINSTANCE_H

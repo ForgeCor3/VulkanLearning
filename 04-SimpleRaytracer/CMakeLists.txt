@@ -4,6 +4,7 @@ project(04-SimpleRaytracer)
 
 set(SOURCES 
     src/Vulkan/VulkanInstance.cpp
+    src/Vulkan/VulkanDebugUtilsMessenger.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp

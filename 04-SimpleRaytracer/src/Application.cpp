@@ -12,6 +12,7 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
 
     window.reset(new Window(windowConfig));
     instance.reset(new VulkanInstance(*window, validationLayers));
+    debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
 }
 
 void Application::run()
@@ -30,7 +31,5 @@ void Application::mainloop()
 
 void Application::terminate()
 {
-    instance.release();
-    window.release();
-    glfwTerminate();
+    glfwTerminate();    
 }
