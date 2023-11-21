@@ -18,7 +18,7 @@ private:
     void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT pDebugMessenger, const VkAllocationCallbacks* pAllocator);
 
     VkInstance* instance;
-    VkDebugUtilsMessengerEXT debugUtilsMessengerEXT;
+    VkDebugUtilsMessengerEXT debugUtilsMessengerEXT = VK_NULL_HANDLE;
 
 public:
     VulkanDebugUtilsMessenger() = delete;

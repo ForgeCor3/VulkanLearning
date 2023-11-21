@@ -15,7 +15,7 @@ private:
 
     void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
 
-    VkInstance instance;
+    VkInstance instance = VK_NULL_HANDLE;
     std::vector<VkExtensionProperties> extensions;
     std::vector<VkLayerProperties> layers;
 
