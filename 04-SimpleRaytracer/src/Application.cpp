@@ -13,7 +13,7 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
     window.reset(new Window(windowConfig));
     instance.reset(new VulkanInstance(*window, validationLayers));
     debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
-    physicalDevice.reset(new VulkanPhysicalDevice(instance.get()->getInstance()));
+    device.reset(new VulkanDevice(instance.get()->getInstance()));
 }
 
 Application::~Application()

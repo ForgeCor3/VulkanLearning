@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.27.0)
 
 project(04-SimpleRaytracer)
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(SOURCES 
     src/Vulkan/VulkanInstance.cpp
     src/Vulkan/VulkanDebugUtilsMessenger.cpp
-    src/Vulkan/VulkanPhysicalDevice.cpp
+    src/Vulkan/VulkanDevice.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp

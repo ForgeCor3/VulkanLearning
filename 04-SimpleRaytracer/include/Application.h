@@ -9,7 +9,7 @@
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanDebugUtilsMessenger.h"
-#include "Vulkan/VulkanPhysicalDevice.h"
+#include "Vulkan/VulkanDevice.h"
 
 class Application final
 {
@@ -19,7 +19,7 @@ private:
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanInstance> instance;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
-    std::unique_ptr<VulkanPhysicalDevice> physicalDevice;
+    std::unique_ptr<VulkanDevice> device;
 
     std::vector<const char*> validationLayers;
 
