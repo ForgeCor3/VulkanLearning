@@ -1,5 +1,5 @@
 #include "Vulkan/VulkanDevice.h"
-#include <iostream>
+
 VulkanDevice::VulkanDevice(VkInstance& instance)
 {
     this->instance = &instance;
@@ -67,4 +67,3 @@ std::optional<uint32_t> VulkanDevice::findQueue(VkQueueFlags queueFlags, const V
     
     return result;
 }
-
