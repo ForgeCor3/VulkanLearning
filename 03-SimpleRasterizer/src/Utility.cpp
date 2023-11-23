@@ -67,7 +67,7 @@ namespace utility
         std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
         return VK_FALSE;
     }
-    #include <iostream>
+    
     bool isPhysicalDeviceSuitable(VkPhysicalDevice& physicalDevice, VkSurfaceKHR* surface, const std::vector<const char*>& deviceExtensions)
     {
         QueueFamilyIndices indices = findQueueFamilies(&physicalDevice, surface);
