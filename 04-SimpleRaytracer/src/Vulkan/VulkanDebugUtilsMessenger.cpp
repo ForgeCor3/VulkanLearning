@@ -37,24 +37,16 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     return false;
 }
 
+VulkanDebugUtilsMessenger::VulkanDebugUtilsMessenger() { }
+
 VulkanDebugUtilsMessenger::VulkanDebugUtilsMessenger(VkInstance& instance)
 {
     this->instance = &instance;
 
-    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT {};
-    debugUtilsMessengerCreateInfoEXT.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    debugUtilsMessengerCreateInfoEXT.messageSeverity =
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    debugUtilsMessengerCreateInfoEXT.messageType =
-        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    debugUtilsMessengerCreateInfoEXT.pfnUserCallback = debug_callback;
-    debugUtilsMessengerCreateInfoEXT.pUserData = nullptr;
+    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo {};
+    setDebugUtilsMessengerCreateInfo(debugUtilsMessengerCreateInfo);
 
-    if(CreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfoEXT, nullptr, &debugUtilsMessengerEXT) != VK_SUCCESS)
+    if(CreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfo, nullptr, &debugUtilsMessengerEXT) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug messenger.");
 }
 
@@ -72,4 +64,19 @@ void VulkanDebugUtilsMessenger::DestroyDebugUtilsMessengerEXT(VkInstance instanc
     auto fn = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if(fn != nullptr)
         return fn(instance, pDebugMessenger, pAllocator);
+}
+
+void VulkanDebugUtilsMessenger::setDebugUtilsMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugUtilsMessengerCreateInfo)
+{
+    debugUtilsMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    debugUtilsMessengerCreateInfo.messageSeverity =
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    debugUtilsMessengerCreateInfo.messageType =
+        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    debugUtilsMessengerCreateInfo.pfnUserCallback = debug_callback;
+    debugUtilsMessengerCreateInfo.pUserData = nullptr;
 }

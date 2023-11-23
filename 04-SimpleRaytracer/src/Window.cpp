@@ -21,6 +21,8 @@ Window::Window(const WindowConfig windowConfig)
         throw std::runtime_error("Failed to create window.");
 }
 
+Window::~Window() { glfwDestroyWindow(window); }
+
 GLFWwindow* Window::getWindow() const  { return this->window; }
 
 std::vector<const char*> Window::getRequiredInstanceExtensions() const

@@ -21,10 +21,12 @@ private:
     VkDebugUtilsMessengerEXT debugUtilsMessengerEXT = VK_NULL_HANDLE;
 
 public:
-    VulkanDebugUtilsMessenger() = delete;
+    VulkanDebugUtilsMessenger();
     VulkanDebugUtilsMessenger(VkInstance& instance);
 
     ~VulkanDebugUtilsMessenger();
+
+    void setDebugUtilsMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugUtilsMessengerCreateInfoEXT);
 };
 
 #endif // VULKANDEBUGUTILSMESSENGER_H

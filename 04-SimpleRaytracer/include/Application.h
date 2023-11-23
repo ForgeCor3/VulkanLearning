@@ -8,7 +8,6 @@
 #include "GlobUtils.h"
 #include "Window.h"
 #include "Vulkan/VulkanInstance.h"
-#include "Vulkan/VulkanDebugUtilsMessenger.h"
 #include "Vulkan/VulkanDevice.h"
 
 class Application final

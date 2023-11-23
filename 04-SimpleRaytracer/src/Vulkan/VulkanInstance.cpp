@@ -2,13 +2,7 @@
 
 VulkanInstance::VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers)
 {
-    if(!validationLayers.empty())
-        checkValidationLayerSupport(validationLayers);
-
     std::vector<const char*> extensions = window.getRequiredInstanceExtensions();
-
-    if(!validationLayers.empty())
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     VkApplicationInfo applicationInfo {};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -21,11 +15,33 @@ VulkanInstance::VulkanInstance(const class Window& window, std::vector<const cha
     VkInstanceCreateInfo instanceCreateInfo {};
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
-    instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
 
+    if(!validationLayers.empty())
+    {
+        checkValidationLayerSupport(validationLayers);
+
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+        instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+        instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+
+        debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger());
+        VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo {};
+        debugUtilsMessenger.get()->setDebugUtilsMessengerCreateInfo(debugUtilsMessengerCreateInfo);
+
+        instanceCreateInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugUtilsMessengerCreateInfo;
+    }
+    else
+    {
+        instanceCreateInfo.enabledLayerCount = 0;
+        instanceCreateInfo.ppEnabledLayerNames = nullptr;
+        instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+        instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
+        instanceCreateInfo.pNext = nullptr;
+    }
+    
     if(vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS)
         throw std::runtime_error("Failed to create instance.");
 }

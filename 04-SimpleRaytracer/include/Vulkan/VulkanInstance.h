@@ -3,9 +3,11 @@
 
 #include <stdexcept>
 #include <vector>
+#include <memory>
 
 #include "GlobUtils.h"
 #include "VulkanUtils.h"
+#include "Vulkan/VulkanDebugUtilsMessenger.h"
 #include "Window.h"
 
 class VulkanInstance final
@@ -16,8 +18,7 @@ private:
     void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
 
     VkInstance instance = VK_NULL_HANDLE;
-    std::vector<VkExtensionProperties> extensions;
-    std::vector<VkLayerProperties> layers;
+    std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
 
 public:
     VulkanInstance() = delete;

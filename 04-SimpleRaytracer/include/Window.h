@@ -22,7 +22,7 @@ public:
     Window() = delete;
     Window(const WindowConfig windowConfig);
 
-    ~Window() { glfwDestroyWindow(window); }
+    ~Window();
 
     GLFWwindow* getWindow() const;
     std::vector<const char*> getRequiredInstanceExtensions() const;

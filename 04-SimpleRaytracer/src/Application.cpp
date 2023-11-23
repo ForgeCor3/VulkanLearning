@@ -12,15 +12,16 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
 
     window.reset(new Window(windowConfig));
     instance.reset(new VulkanInstance(*window, validationLayers));
-    debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
+    if(!validationLayers.empty()) debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
     device.reset(new VulkanDevice(instance.get()->getInstance()));
 }
 
 Application::~Application()
 {
-    debugUtilsMessenger.release();
-    instance.release();
-    window.release();
+    device.get()->~VulkanDevice();
+    if(!validationLayers.empty()) debugUtilsMessenger.get()->~VulkanDebugUtilsMessenger();
+    instance.get()->~VulkanInstance();
+    window.get()->~Window();
     glfwTerminate();
 }
 
