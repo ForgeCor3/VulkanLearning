@@ -1,5 +1,5 @@
 #include "Window.h"
-
+#include <iostream>
 Window::Window(const WindowConfig windowConfig)
 {
     if(!glfwInit())
@@ -7,9 +7,10 @@ Window::Window(const WindowConfig windowConfig)
 
     this->windowConfig = windowConfig;
 
-    glfwWindowHint(GLFW_RESIZABLE, this->windowConfig.isResizable);
-
     GLFWmonitor* isFullscreen = windowConfig.isFullscreen ? glfwGetPrimaryMonitor() : nullptr;
+
+    glfwWindowHint(GLFW_RESIZABLE, this->windowConfig.isResizable);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     this->window = glfwCreateWindow(
             this->windowConfig.windowWidth,
@@ -23,7 +24,7 @@ Window::Window(const WindowConfig windowConfig)
 
 Window::~Window() { glfwDestroyWindow(window); }
 
-GLFWwindow* Window::getWindow() const  { return this->window; }
+GLFWwindow* Window::getWindow() const  { return window; }
 
 std::vector<const char*> Window::getRequiredInstanceExtensions() const
 {

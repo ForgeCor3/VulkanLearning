@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCES 
     src/Vulkan/VulkanInstance.cpp
     src/Vulkan/VulkanDebugUtilsMessenger.cpp
+    src/Vulkan/VulkanSurface.cpp
     src/Vulkan/VulkanDevice.cpp
     src/Window.cpp
     src/Application.cpp

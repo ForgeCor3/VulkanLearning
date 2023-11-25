@@ -3,6 +3,7 @@
 VulkanInstance::VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers)
 {
     std::vector<const char*> extensions = window.getRequiredInstanceExtensions();
+    this->window = window.getWindow();
 
     VkApplicationInfo applicationInfo {};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -46,7 +47,11 @@ VulkanInstance::VulkanInstance(const class Window& window, std::vector<const cha
         throw std::runtime_error("Failed to create instance.");
 }
 
- VulkanInstance::~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
+VulkanInstance::~VulkanInstance() { vkDestroyInstance(instance, nullptr); }
+
+VkInstance& VulkanInstance::getInstance() { return instance; }
+
+GLFWwindow* VulkanInstance::getWindow() { return window; }
 
 void VulkanInstance::checkValidationLayerSupport(std::vector<const char*>& validationLayers)
 {

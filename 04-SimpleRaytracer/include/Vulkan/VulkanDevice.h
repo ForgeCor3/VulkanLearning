@@ -14,24 +14,26 @@
 
 class VulkanDevice final
 {
-private:
+public:
     DISABLE_COPY_AND_MOVE(VulkanDevice)
+
+    VulkanDevice() = delete;
+    VulkanDevice(VkInstance& instance);
+    ~VulkanDevice();
+
+private:
+    std::optional<uint32_t> findQueue(VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
 
     void selectPhysicalDevice();
     VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices);
-    std::optional<uint32_t> findQueue(VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
+    void setupLogicalDevice();
 
     VkInstance* instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-public:
-    VulkanDevice() = delete;
-    VulkanDevice(VkInstance& instance);
-
-    ~VulkanDevice() { };
+    VkDevice device;
 
     uint32_t graphicsQueueFamilyIndex;
-
+    
     VkQueue graphicsQueue;
 };
 

@@ -7,14 +7,41 @@ VulkanDevice::VulkanDevice(VkInstance& instance)
     selectPhysicalDevice();
 }
 
+VulkanDevice::~VulkanDevice()
+{
+    vkDestroyDevice(device, nullptr);
+}
+
+std::optional<uint32_t> VulkanDevice::findQueue(VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice)
+{
+    std::vector<VkQueueFamilyProperties> availableQueueFamilies;
+    EnumerateVector(vkGetPhysicalDeviceQueueFamilyProperties, physicalDevice, availableQueueFamilies);
+
+    std::optional<uint32_t> result;
+
+    uint32_t index = 0;
+    for(const VkQueueFamilyProperties& queueFamily : availableQueueFamilies)
+    {
+        if(queueFamily.queueFlags & queueFlags)
+        {
+            result = index;
+            break;
+        }
+
+        index++;
+    }
+    
+    return result;
+}
+
 void VulkanDevice::selectPhysicalDevice()
 {
     std::vector<VkPhysicalDevice> availablePhysicalDevices;
     EnumerateVector(vkEnumeratePhysicalDevices, *instance, availablePhysicalDevices);
-    if(availablePhysicalDevices.empty()) throw std::runtime_error("Failed to find GPUs with supported vulkan.");
+    if(availablePhysicalDevices.empty())
+        throw std::runtime_error("Failed to find GPUs with supported vulkan.");
 
     physicalDevice = findSuitablePhysicalDevice(availablePhysicalDevices);
-    graphicsQueueFamilyIndex = findQueue(VK_QUEUE_GRAPHICS_BIT, physicalDevice).value();
 }
 
 VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices)
@@ -46,24 +73,28 @@ VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPh
     return physicalDeviceScores.rbegin()->second;
 }
 
-std::optional<uint32_t> VulkanDevice::findQueue(VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice)
+void VulkanDevice::setupLogicalDevice()
 {
-    std::vector<VkQueueFamilyProperties> availableQueueFamilies;
-    EnumerateVector(vkGetPhysicalDeviceQueueFamilyProperties, physicalDevice, availableQueueFamilies);
+    graphicsQueueFamilyIndex = findQueue(VK_QUEUE_GRAPHICS_BIT, physicalDevice).value();
+    float graphicsQueuePriority = 1.0f;
 
-    std::optional<uint32_t> result;
+    VkDeviceQueueCreateInfo graphicsQueueCreateInfo {};
+    graphicsQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    graphicsQueueCreateInfo.queueFamilyIndex = graphicsQueueFamilyIndex;
+    graphicsQueueCreateInfo.queueCount = 1;
+    graphicsQueueCreateInfo.pQueuePriorities = &graphicsQueuePriority;
 
-    uint32_t index = 0;
-    for(const VkQueueFamilyProperties& queueFamily : availableQueueFamilies)
-    {
-        if(queueFamily.queueFlags & queueFlags)
-        {
-            result = index;
-            break;
-        }
+    VkPhysicalDeviceFeatures physicalDeviceFeatures {};
 
-        index++;
-    }
-    
-    return result;
+    VkDeviceCreateInfo deviceCreateInfo {};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pQueueCreateInfos = &graphicsQueueCreateInfo;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
+    deviceCreateInfo.enabledExtensionCount = 0;
+
+    if(!vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create device.");
+
+    vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
 }

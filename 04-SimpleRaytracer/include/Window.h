@@ -12,20 +12,19 @@
 
 class Window final
 {
-private:
+public:
     DISABLE_COPY_AND_MOVE(Window)
 
-    GLFWwindow* window;
-    WindowConfig windowConfig;
-
-public:
     Window() = delete;
     Window(const WindowConfig windowConfig);
-
     ~Window();
 
     GLFWwindow* getWindow() const;
     std::vector<const char*> getRequiredInstanceExtensions() const;
+
+private:
+    GLFWwindow* window;
+    WindowConfig windowConfig;
 };
 
 #endif // WINDOW_H

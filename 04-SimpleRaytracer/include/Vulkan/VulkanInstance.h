@@ -12,21 +12,23 @@
 
 class VulkanInstance final
 {
-private:
+public:
     DISABLE_COPY_AND_MOVE(VulkanInstance)
 
+    VulkanInstance() = delete;
+    VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers);
+    ~VulkanInstance();
+
+    VkInstance& getInstance();
+    GLFWwindow* getWindow();
+
+private:
     void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
 
     VkInstance instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
 
-public:
-    VulkanInstance() = delete;
-    VulkanInstance(const class Window& window, std::vector<const char*>& validationLayers);
-    
-    ~VulkanInstance();
-
-    VkInstance& getInstance() { return instance; }
+    GLFWwindow* window;
 };
 
 #endif // VULKANINSTANCE_H
