@@ -7,10 +7,12 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <set>
 #include <optional>
 
 #include "GlobUtils.h"
 #include "Vulkan/VulkanUtils.h"
+#include "Vulkan/VulkanSurface.h"
 
 class VulkanDevice final
 {
@@ -18,23 +20,25 @@ public:
     DISABLE_COPY_AND_MOVE(VulkanDevice)
 
     VulkanDevice() = delete;
-    VulkanDevice(VkInstance& instance);
+    VulkanDevice(VulkanInstance& instance, VulkanSurface& surface);
     ~VulkanDevice();
 
 private:
-    std::optional<uint32_t> findQueue(VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
+    std::optional<uint32_t> findQueue(const VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
 
-    void selectPhysicalDevice();
+    void selectPhysicalDevice(VulkanInstance& instance);
     VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices);
-    void setupLogicalDevice();
+    void setupLogicalDevice(VulkanSurface& surface);
 
     VkInstance* instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
 
     uint32_t graphicsQueueFamilyIndex;
+    uint32_t presentQueueFamilyIndex;
     
     VkQueue graphicsQueue;
+    VkQueue presentQueue;
 };
 
 #endif // VULKANPHYSICALDEVICE_H

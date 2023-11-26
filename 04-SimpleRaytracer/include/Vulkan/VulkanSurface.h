@@ -18,6 +18,8 @@ public:
     VulkanSurface(VulkanInstance* instance);
     ~VulkanSurface();
 
+    const VkSurfaceKHR getSurface();
+
 private:
     VkInstance instance;
     VkSurfaceKHR surface;

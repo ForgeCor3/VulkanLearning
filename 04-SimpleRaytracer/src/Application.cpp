@@ -17,14 +17,14 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
         debugUtilsMessenger.reset(new VulkanDebugUtilsMessenger(instance.get()->getInstance()));
 
     surface.reset(new VulkanSurface(instance.get()));
-    device.reset(new VulkanDevice(instance.get()->getInstance()));
+    device.reset(new VulkanDevice(*instance.get(), *surface.get()));
 }
 
 Application::~Application()
 {
     device.reset();
-    
     if(!validationLayers.empty()) debugUtilsMessenger.reset();
+    surface.reset();
     instance.reset();
     window.reset();
 

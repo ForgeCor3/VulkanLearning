@@ -8,7 +8,6 @@ VulkanSurface::VulkanSurface(VulkanInstance* instance)
         throw std::runtime_error("Failed to create surface.");
 }
 
-VulkanSurface::~VulkanSurface()
-{
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-}
+VulkanSurface::~VulkanSurface() { vkDestroySurfaceKHR(instance, surface, nullptr); }
+
+const VkSurfaceKHR VulkanSurface::getSurface() { return surface; }
