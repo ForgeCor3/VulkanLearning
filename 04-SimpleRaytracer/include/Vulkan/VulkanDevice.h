@@ -28,11 +28,17 @@ private:
 
     void selectPhysicalDevice(VulkanInstance& instance);
     VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices);
+    bool checkDeviceExtensionsSupport(VkPhysicalDevice physicalDevice);
     void setupLogicalDevice(VulkanSurface& surface);
 
     VkInstance* instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
+
+    const std::vector<const char*> deviceExtensions =
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
 
     uint32_t graphicsQueueFamilyIndex;
     uint32_t presentQueueFamilyIndex;

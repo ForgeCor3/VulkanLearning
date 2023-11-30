@@ -57,6 +57,13 @@ VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPh
         VkPhysicalDeviceProperties physicalDeviceProperties;
         vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
+        if(!findQueue(VK_QUEUE_GRAPHICS_BIT, physicalDevice).has_value() || !checkDeviceExtensionsSupport(physicalDevice))
+        {
+            currentPhysicalDeviceScore = 0;
+            physicalDeviceScores.emplace(currentPhysicalDeviceScore, physicalDevice);
+            continue;
+        }
+
         if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             currentPhysicalDeviceScore += 10;
         if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
@@ -64,13 +71,23 @@ VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPh
         if(physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
             currentPhysicalDeviceScore += 1;
 
-        if(!findQueue(VK_QUEUE_GRAPHICS_BIT, physicalDevice).has_value())
-            currentPhysicalDeviceScore = 0;
-
         physicalDeviceScores.emplace(currentPhysicalDeviceScore, physicalDevice);
     }
 
     return physicalDeviceScores.rbegin()->second;
+}
+
+bool VulkanDevice::checkDeviceExtensionsSupport(VkPhysicalDevice physicalDevice)
+{
+    std::vector<VkExtensionProperties> extensionProperties;
+    EnumerateVector(vkEnumerateDeviceExtensionProperties, physicalDevice, extensionProperties);
+
+    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+    for(const auto extension : extensionProperties)
+        requiredExtensions.erase(extension.extensionName);
+
+    return requiredExtensions.empty();
 }
 
 void VulkanDevice::setupLogicalDevice(VulkanSurface& surface)
@@ -115,8 +132,9 @@ void VulkanDevice::setupLogicalDevice(VulkanSurface& surface)
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCreateInfos.size());
     deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
+    deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+    deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
     deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
-    deviceCreateInfo.enabledExtensionCount = 0;
     
     if(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
         throw std::runtime_error("Failed to create device.");
