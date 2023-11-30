@@ -9,6 +9,7 @@ set(SOURCES
     src/Vulkan/VulkanDebugUtilsMessenger.cpp
     src/Vulkan/VulkanSurface.cpp
     src/Vulkan/VulkanDevice.cpp
+    src/Vulkan/VulkanSwapChain.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp
