@@ -13,6 +13,7 @@
 #include "GlobUtils.h"
 #include "Vulkan/VulkanUtils.h"
 #include "Vulkan/VulkanSurface.h"
+#include "Vulkan/VulkanInstance.h"
 
 class VulkanDevice final
 {
@@ -23,15 +24,25 @@ public:
     VulkanDevice(VulkanInstance& instance, VulkanSurface& surface);
     ~VulkanDevice();
 
+    VkDevice& getDevice();
+    VkPhysicalDevice& getPhysicalDevice();
+
+    VkSurfaceKHR& getSurface();
+    GLFWwindow* getWindow();
+
+    uint32_t getGraphicsQueueFamilyIndex();
+    uint32_t getPresentQueueFamilyIndex();
+
 private:
     std::optional<uint32_t> findQueue(const VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
 
     void selectPhysicalDevice(VulkanInstance& instance);
     VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices);
     bool checkDeviceExtensionsSupport(VkPhysicalDevice physicalDevice);
-    void setupLogicalDevice(VulkanSurface& surface);
+    void setupLogicalDevice();
 
-    VkInstance* instance;
+    VulkanInstance* instance;
+    VkSurfaceKHR surface;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
 

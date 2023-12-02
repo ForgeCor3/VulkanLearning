@@ -2,14 +2,23 @@
 
 VulkanDevice::VulkanDevice(VulkanInstance& instance, VulkanSurface& surface)
 {
+    this->instance = &instance;
+    this->surface = surface.getSurface();
+
     selectPhysicalDevice(instance);
-    setupLogicalDevice(surface);
+    setupLogicalDevice();
 }
 
-VulkanDevice::~VulkanDevice()
-{
-    vkDestroyDevice(device, nullptr);
-}
+VulkanDevice::~VulkanDevice() { vkDestroyDevice(device, nullptr); }
+
+VkDevice& VulkanDevice::getDevice() { return device; }
+VkPhysicalDevice& VulkanDevice::getPhysicalDevice() { return physicalDevice; }
+
+VkSurfaceKHR& VulkanDevice::getSurface() { return surface; }
+GLFWwindow* VulkanDevice::getWindow() { return instance->getWindow(); }
+
+uint32_t VulkanDevice::getGraphicsQueueFamilyIndex() { return graphicsQueueFamilyIndex; }
+uint32_t VulkanDevice::getPresentQueueFamilyIndex() { return presentQueueFamilyIndex; }
 
 std::optional<uint32_t> VulkanDevice::findQueue(const VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice)
 {
@@ -90,7 +99,7 @@ bool VulkanDevice::checkDeviceExtensionsSupport(VkPhysicalDevice physicalDevice)
     return requiredExtensions.empty();
 }
 
-void VulkanDevice::setupLogicalDevice(VulkanSurface& surface)
+void VulkanDevice::setupLogicalDevice()
 {
     std::vector<VkQueueFamilyProperties> availableQueueFamilies;
     EnumerateVector(vkGetPhysicalDeviceQueueFamilyProperties, physicalDevice, availableQueueFamilies);
@@ -98,7 +107,7 @@ void VulkanDevice::setupLogicalDevice(VulkanSurface& surface)
     for(auto it = availableQueueFamilies.begin(); it != availableQueueFamilies.end(); ++it)
     {
         VkBool32 pSupported = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, static_cast<uint32_t>(it - availableQueueFamilies.begin()), surface.getSurface(), &pSupported);
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, static_cast<uint32_t>(it - availableQueueFamilies.begin()), surface, &pSupported);
         if(pSupported)
         {
             presentQueueFamilyIndex = static_cast<uint32_t>(it - availableQueueFamilies.begin());

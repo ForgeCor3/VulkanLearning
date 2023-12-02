@@ -18,10 +18,12 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
 
     surface.reset(new VulkanSurface(instance.get()));
     device.reset(new VulkanDevice(*instance.get(), *surface.get()));
+    swapChain.reset(new VulkanSwapChain(*device.get()));
 }
 
 Application::~Application()
 {
+    swapChain.reset();
     device.reset();
     if(!validationLayers.empty()) debugUtilsMessenger.reset();
     surface.reset();

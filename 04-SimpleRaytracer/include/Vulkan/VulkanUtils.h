@@ -42,4 +42,13 @@ inline void EnumerateVector(void (*enumerationFunction)(VkPhysicalDevice, uint32
     enumerationFunction(physicalDevice, &count, data.data());
 }
 
+template <typename T>
+inline void EnumerateVector(VkResult (*enumerationFunction)(VkPhysicalDevice, VkSurfaceKHR, uint32_t*, T*), const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface, std::vector<T>& data)
+{
+    uint32_t count = 0;
+    enumerationFunction(physicalDevice, surface, &count, nullptr);
+    data.resize(count);
+    enumerationFunction(physicalDevice, surface, &count, data.data());
+}
+
 #endif // VULKANUTILS_H
