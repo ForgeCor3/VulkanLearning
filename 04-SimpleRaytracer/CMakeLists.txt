@@ -10,6 +10,7 @@ set(SOURCES
     src/Vulkan/VulkanSurface.cpp
     src/Vulkan/VulkanDevice.cpp
     src/Vulkan/VulkanSwapChain.cpp
+    src/Vulkan/VulkanImageView.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp

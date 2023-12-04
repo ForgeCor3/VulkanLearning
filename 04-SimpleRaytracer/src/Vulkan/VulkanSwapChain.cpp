@@ -4,8 +4,10 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice& device) : device(device.getDevice
 {
     VulkanSwapChain::SupportDetails supportDetails = querySwapChainSupport(device);
 
-    surfaceFormat = chooseSwapSurfaceFormat(supportDetails.surfaceFormats);
-    presentMode = chooseSwapPresentMode(supportDetails.presentModes);
+    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(supportDetails.surfaceFormats);
+    VkPresentModeKHR presentMode = chooseSwapPresentMode(supportDetails.presentModes);
+
+    imageFormat = surfaceFormat.format;
     extent = chooseSwapExtent(supportDetails.capabilities, device);
     imageCount = chooseImageCount(supportDetails.capabilities);
 
@@ -13,7 +15,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice& device) : device(device.getDevice
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swapchainCreateInfo.surface = device.getSurface();
     swapchainCreateInfo.minImageCount = imageCount;
-    swapchainCreateInfo.imageFormat = surfaceFormat.format;
+    swapchainCreateInfo.imageFormat = imageFormat;
     swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
     swapchainCreateInfo.imageExtent = extent;
     swapchainCreateInfo.imageArrayLayers = 1;
@@ -40,9 +42,19 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice& device) : device(device.getDevice
 
     if(vkCreateSwapchainKHR(this->device, &swapchainCreateInfo, nullptr, &swapChain) != VK_SUCCESS)
         throw std::runtime_error("Failed to create swap chain.");
+
+    EnumerateVector(vkGetSwapchainImagesKHR, this->device, swapChain, swapChainImages);
+
+    for(const auto& image : swapChainImages)
+        swapChainImageViews.push_back(std::make_unique<VulkanImageView>(this->device, image, imageFormat));
 }
 
-VulkanSwapChain::~VulkanSwapChain() { vkDestroySwapchainKHR(device, swapChain, nullptr); }
+VulkanSwapChain::~VulkanSwapChain()
+{
+    // TO DO CLEAN UP SWAP CHAIN IMAGE VIEWS
+
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
+}
 
 VulkanSwapChain::SupportDetails VulkanSwapChain::querySwapChainSupport(VulkanDevice& device)
 {

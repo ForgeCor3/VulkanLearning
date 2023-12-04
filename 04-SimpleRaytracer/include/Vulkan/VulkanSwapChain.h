@@ -10,7 +10,9 @@
 #include <algorithm>
 
 #include "GlobUtils.h"
+#include "Vulkan/VulkanUtils.h"
 #include "Vulkan/VulkanDevice.h"
+#include "Vulkan/VulkanImageView.h"
 
 class VulkanSwapChain final
 {    
@@ -39,8 +41,9 @@ private:
 
     VkSwapchainKHR swapChain;
 
-    VkSurfaceFormatKHR surfaceFormat;
-    VkPresentModeKHR presentMode;
+    std::vector<VkImage> swapChainImages;
+    std::vector<std::unique_ptr<VulkanImageView>> swapChainImageViews;
+    VkFormat imageFormat;
     VkExtent2D extent;
     uint32_t imageCount;
 };
