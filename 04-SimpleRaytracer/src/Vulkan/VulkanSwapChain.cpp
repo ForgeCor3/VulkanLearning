@@ -51,7 +51,8 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice& device) : device(device.getDevice
 
 VulkanSwapChain::~VulkanSwapChain()
 {
-    // TO DO CLEAN UP SWAP CHAIN IMAGE VIEWS
+    for(auto& imageView : swapChainImageViews)
+        imageView.reset();
 
     vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
