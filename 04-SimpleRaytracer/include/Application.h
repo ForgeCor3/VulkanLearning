@@ -12,6 +12,7 @@
 #include "Vulkan/VulkanSurface.h"
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanSwapChain.h"
+#include "Vulkan/VulkanGraphicsPipeline.h"
 
 class Application final
 {
@@ -33,6 +34,7 @@ private:
     std::unique_ptr<VulkanDevice> device;
     std::unique_ptr<VulkanSurface> surface;
     std::unique_ptr<VulkanSwapChain> swapChain;
+    std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline;
 
     std::vector<const char*> validationLayers;
 };

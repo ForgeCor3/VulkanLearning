@@ -19,6 +19,7 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
     surface.reset(new VulkanSurface(instance.get()));
     device.reset(new VulkanDevice(*instance.get(), *surface.get()));
     swapChain.reset(new VulkanSwapChain(*device.get()));
+    graphicsPipeline.reset(new VulkanGraphicsPipeline(*device.get()));
 }
 
 Application::~Application()

@@ -11,6 +11,8 @@ set(SOURCES
     src/Vulkan/VulkanDevice.cpp
     src/Vulkan/VulkanSwapChain.cpp
     src/Vulkan/VulkanImageView.cpp
+    src/Vulkan/VulkanGraphicsPipeline.cpp
+    src/Vulkan/VulkanShaderModule.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp
@@ -34,3 +36,12 @@ target_link_libraries(04-SimpleRaytracer
     glfw3
     vulkan-1
 )
+
+add_custom_target(copy_shaders ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/shaders
+    ${PROJECT_BINARY_DIR}/shaders
+    COMMENT "Copying shaders into binary directory."
+    )
+
+add_dependencies(04-SimpleRaytracer copy_shaders)
