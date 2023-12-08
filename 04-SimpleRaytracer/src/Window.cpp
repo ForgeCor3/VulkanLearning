@@ -1,5 +1,5 @@
 #include "Window.h"
-#include <iostream>
+
 Window::Window(const WindowConfig windowConfig)
 {
     if(!glfwInit())

@@ -1,5 +1,5 @@
 #include "Vulkan/VulkanImageView.h"
-#include <iostream>
+
 VulkanImageView::VulkanImageView(const VkDevice device, const VkImage image, const VkFormat imageFormat) : device(device)
 {
     VkImageViewCreateInfo imageViewCreateInfo {};

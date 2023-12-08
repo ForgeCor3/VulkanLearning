@@ -7,6 +7,7 @@
 #include "GlobUtils.h"
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanShaderModule.h"
+#include "Vulkan/VulkanPipelineLayout.h"
 
 class VulkanGraphicsPipeline final
 {
@@ -14,11 +15,14 @@ public:
     DISABLE_COPY_AND_MOVE(VulkanGraphicsPipeline)
 
     VulkanGraphicsPipeline() = delete;
-    VulkanGraphicsPipeline(VulkanDevice& device);
+    VulkanGraphicsPipeline(VulkanSwapChain& swapChain);
     ~VulkanGraphicsPipeline();
 
 private:
     VkDevice& device;
+
+    //VkPipelineLayout pipelineLayout;
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
 };
 
 #endif // VULKANGRAPHICSPIPELINE_H

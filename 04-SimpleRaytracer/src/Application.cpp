@@ -1,6 +1,6 @@
 #include "Application.h"
 
-void error_callback(int, const char* err_str) { std::cout << "GLFW Error: " << err_str << std::endl; }
+void error_callback(int, const char* err_str) { std::cerr << "GLFW Error: " << err_str << std::endl; }
 
 Application::Application(const WindowConfig& windowConfig, bool validationLayersEnabled)
 {
@@ -19,14 +19,18 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
     surface.reset(new VulkanSurface(instance.get()));
     device.reset(new VulkanDevice(*instance.get(), *surface.get()));
     swapChain.reset(new VulkanSwapChain(*device.get()));
-    graphicsPipeline.reset(new VulkanGraphicsPipeline(*device.get()));
+    graphicsPipeline.reset(new VulkanGraphicsPipeline(*swapChain.get()));
 }
 
 Application::~Application()
 {
+    graphicsPipeline.reset();
     swapChain.reset();
     device.reset();
-    if(!validationLayers.empty()) debugUtilsMessenger.reset();
+
+    if(!validationLayers.empty())
+        debugUtilsMessenger.reset();
+
     surface.reset();
     instance.reset();
     window.reset();

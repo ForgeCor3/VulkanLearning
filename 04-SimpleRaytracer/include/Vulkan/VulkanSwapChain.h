@@ -23,6 +23,9 @@ public:
     VulkanSwapChain(VulkanDevice& device);
     ~VulkanSwapChain();
 
+    VkDevice& getDevice();
+    VkExtent2D getExtent();
+
 private:
     struct SupportDetails
     {

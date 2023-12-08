@@ -57,6 +57,10 @@ VulkanSwapChain::~VulkanSwapChain()
     vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
 
+VkDevice& VulkanSwapChain::getDevice() { return device; }
+
+VkExtent2D VulkanSwapChain::getExtent() { return extent; }
+
 VulkanSwapChain::SupportDetails VulkanSwapChain::querySwapChainSupport(VulkanDevice& device)
 {
     VulkanSwapChain::SupportDetails supportDetails;

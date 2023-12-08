@@ -1,5 +1,5 @@
 #include "Vulkan/VulkanShaderModule.h"
-#include <iostream>
+
 VulkanShaderModule::VulkanShaderModule(const VkDevice& device, const std::string filePath) : device(device)
 {
     std::vector<char> shaderCode = readFile(filePath);
@@ -15,6 +15,17 @@ VulkanShaderModule::VulkanShaderModule(const VkDevice& device, const std::string
 }
 
 VulkanShaderModule::~VulkanShaderModule() { vkDestroyShaderModule(this->device, shaderModule, nullptr); }
+
+VkPipelineShaderStageCreateInfo VulkanShaderModule::createPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage) const
+{
+    VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo {};
+    pipelineShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineShaderStageCreateInfo.stage = stage;
+    pipelineShaderStageCreateInfo.module = shaderModule;
+    pipelineShaderStageCreateInfo.pName = "main";
+
+    return pipelineShaderStageCreateInfo;
+}
 
 std::vector<char> VulkanShaderModule::readFile(std::string filePath)
 {

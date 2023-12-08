@@ -5,14 +5,15 @@ project(04-SimpleRaytracer)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES 
-    src/Vulkan/VulkanInstance.cpp
-    src/Vulkan/VulkanDebugUtilsMessenger.cpp
-    src/Vulkan/VulkanSurface.cpp
-    src/Vulkan/VulkanDevice.cpp
-    src/Vulkan/VulkanSwapChain.cpp
-    src/Vulkan/VulkanImageView.cpp
-    src/Vulkan/VulkanGraphicsPipeline.cpp
+    src/Vulkan/VulkanPipelineLayout.cpp
     src/Vulkan/VulkanShaderModule.cpp
+    src/Vulkan/VulkanGraphicsPipeline.cpp
+    src/Vulkan/VulkanImageView.cpp
+    src/Vulkan/VulkanSwapChain.cpp
+    src/Vulkan/VulkanDevice.cpp
+    src/Vulkan/VulkanSurface.cpp
+    src/Vulkan/VulkanDebugUtilsMessenger.cpp
+    src/Vulkan/VulkanInstance.cpp
     src/Window.cpp
     src/Application.cpp
     src/main.cpp

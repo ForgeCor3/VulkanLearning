@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "GlobUtils.h"
+#include "Vulkan/VulkanSwapChain.h"
 
 class VulkanShaderModule final
 {
@@ -19,6 +20,8 @@ public:
     VulkanShaderModule() = delete;
     VulkanShaderModule(const VkDevice& device, const std::string filePath);
     ~VulkanShaderModule();
+
+    VkPipelineShaderStageCreateInfo createPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage) const;
 
 private:
     std::vector<char> readFile(std::string filePath);
