@@ -8,6 +8,7 @@
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanShaderModule.h"
 #include "Vulkan/VulkanPipelineLayout.h"
+#include "Vulkan/VulkanRenderPass.h"
 
 class VulkanGraphicsPipeline final
 {
@@ -21,8 +22,10 @@ public:
 private:
     VkDevice& device;
 
-    //VkPipelineLayout pipelineLayout;
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
+    std::unique_ptr<VulkanRenderPass> renderPass;
+
+    VkPipeline graphicsPipeline;
 };
 
 #endif // VULKANGRAPHICSPIPELINE_H

@@ -5,6 +5,7 @@ project(04-SimpleRaytracer)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES 
+    src/Vulkan/VulkanRenderPass.cpp
     src/Vulkan/VulkanPipelineLayout.cpp
     src/Vulkan/VulkanShaderModule.cpp
     src/Vulkan/VulkanGraphicsPipeline.cpp

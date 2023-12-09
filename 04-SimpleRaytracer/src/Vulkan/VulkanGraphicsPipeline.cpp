@@ -72,8 +72,6 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanSwapChain& swapChain) : dev
     pipelineColorBlendStateCreateInfo.attachmentCount = 1;
     pipelineColorBlendStateCreateInfo.pAttachments = &pipelineColorBlendAttachmentState;
 
-    pipelineLayout.reset(new VulkanPipelineLayout(device));
-
     const VulkanShaderModule vertexShader(this->device, "../shaders/vertexShader.spv");
     const VulkanShaderModule fragmentShader(this->device, "../shaders/fragmentShader.spv");
 
@@ -81,6 +79,36 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanSwapChain& swapChain) : dev
         vertexShader.createPipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT),
         fragmentShader.createPipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT)
     };
+
+    pipelineLayout.reset(new VulkanPipelineLayout(device));
+    renderPass.reset(new VulkanRenderPass(swapChain));
+
+    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
+    graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    graphicsPipelineCreateInfo.stageCount = 2;
+    graphicsPipelineCreateInfo.pStages = pipelineShaderStageCreateInfos;
+    graphicsPipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
+    graphicsPipelineCreateInfo.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo;
+    graphicsPipelineCreateInfo.pViewportState = &pipelineViewportStateCreateInfo;
+    graphicsPipelineCreateInfo.pRasterizationState = &pipelineRasterizationStateCreateInfo;
+    graphicsPipelineCreateInfo.pMultisampleState = &pipelineMultisampleStateCreateInfo;
+    graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+    graphicsPipelineCreateInfo.pColorBlendState = &pipelineColorBlendStateCreateInfo;
+    graphicsPipelineCreateInfo.pDynamicState = &pipelineDynamicStateCreateInfo;
+    graphicsPipelineCreateInfo.layout = pipelineLayout->getPipelineLayout();
+    graphicsPipelineCreateInfo.renderPass = renderPass->getRenderPass();
+    graphicsPipelineCreateInfo.subpass = 0;
+
+    if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create graphics pipeline.");
+
+    
 }
 
-VulkanGraphicsPipeline::~VulkanGraphicsPipeline() { pipelineLayout.reset(); }
+VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
+{
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+
+    pipelineLayout.reset();
+    renderPass.reset();
+}

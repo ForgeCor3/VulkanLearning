@@ -61,6 +61,8 @@ VkDevice& VulkanSwapChain::getDevice() { return device; }
 
 VkExtent2D VulkanSwapChain::getExtent() { return extent; }
 
+VkFormat VulkanSwapChain::getFormat() { return imageFormat; }
+
 VulkanSwapChain::SupportDetails VulkanSwapChain::querySwapChainSupport(VulkanDevice& device)
 {
     VulkanSwapChain::SupportDetails supportDetails;

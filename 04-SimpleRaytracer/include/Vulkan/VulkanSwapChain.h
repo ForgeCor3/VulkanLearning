@@ -25,6 +25,7 @@ public:
 
     VkDevice& getDevice();
     VkExtent2D getExtent();
+    VkFormat getFormat();
 
 private:
     struct SupportDetails
