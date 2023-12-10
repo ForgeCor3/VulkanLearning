@@ -13,6 +13,8 @@
 class VulkanFramebuffer final
 {
 public:
+    DISABLE_COPY_AND_MOVE(VulkanFramebuffer)
+
     VulkanFramebuffer() = delete;
     VulkanFramebuffer(VulkanRenderPass& renderPass, const VkImageView& imageView);
     ~VulkanFramebuffer();
