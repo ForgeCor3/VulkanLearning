@@ -1,6 +1,6 @@
 #include "Vulkan/VulkanRenderPass.h"
 
-VulkanRenderPass::VulkanRenderPass(VulkanSwapChain& swapChain) : device(swapChain.getDevice())
+VulkanRenderPass::VulkanRenderPass(VulkanSwapChain& swapChain) : swapChain(swapChain)
 {
     VkAttachmentDescription colorAttachmentDescription {};
     colorAttachmentDescription.format = swapChain.getFormat();
@@ -14,7 +14,7 @@ VulkanRenderPass::VulkanRenderPass(VulkanSwapChain& swapChain) : device(swapChai
 
     VkAttachmentReference colorAttachmentReference {};
     colorAttachmentReference.attachment = 0;
-    colorAttachmentReference.layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpassDescription {};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -28,10 +28,12 @@ VulkanRenderPass::VulkanRenderPass(VulkanSwapChain& swapChain) : device(swapChai
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
 
-    if(vkCreateRenderPass(this->device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
+    if(vkCreateRenderPass(swapChain.getDevice(), &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
         throw std::runtime_error("Failed to create render pass.");
 }
 
-VulkanRenderPass::~VulkanRenderPass() { vkDestroyRenderPass(device, renderPass, nullptr); }
+VulkanRenderPass::~VulkanRenderPass() { vkDestroyRenderPass(swapChain.getDevice(), renderPass, nullptr); }
 
-VkRenderPass VulkanRenderPass::getRenderPass() { return renderPass; };
+VkRenderPass& VulkanRenderPass::getRenderPass() { return renderPass; }
+
+VulkanSwapChain& VulkanRenderPass::getSwapChain() { return swapChain; }

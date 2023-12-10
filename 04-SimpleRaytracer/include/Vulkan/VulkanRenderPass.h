@@ -16,11 +16,11 @@ public:
     VulkanRenderPass(VulkanSwapChain& swapChain);
     ~VulkanRenderPass();
 
-    VkRenderPass getRenderPass();
+    VkRenderPass& getRenderPass();
+    VulkanSwapChain& getSwapChain();
 
 private:
-    VkDevice& device;
-
+    VulkanSwapChain& swapChain;
     VkRenderPass renderPass;
 };
 

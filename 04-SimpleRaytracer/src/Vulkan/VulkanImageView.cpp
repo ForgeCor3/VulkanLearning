@@ -1,6 +1,6 @@
 #include "Vulkan/VulkanImageView.h"
 
-VulkanImageView::VulkanImageView(const VkDevice device, const VkImage image, const VkFormat imageFormat) : device(device)
+VulkanImageView::VulkanImageView(const VkDevice& device, const VkImage image, const VkFormat imageFormat) : device(device)
 {
     VkImageViewCreateInfo imageViewCreateInfo {};
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -23,3 +23,5 @@ VulkanImageView::VulkanImageView(const VkDevice device, const VkImage image, con
 }
 
 VulkanImageView::~VulkanImageView() { vkDestroyImageView(device, imageView, nullptr); }
+
+VkImageView& VulkanImageView::getImageView() { return imageView; }

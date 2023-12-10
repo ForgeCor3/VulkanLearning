@@ -27,7 +27,6 @@ private:
 
     VkInstance instance = VK_NULL_HANDLE;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
-
     GLFWwindow* window;
 };
 

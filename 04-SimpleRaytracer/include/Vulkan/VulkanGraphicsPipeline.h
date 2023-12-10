@@ -4,11 +4,14 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <memory>
+
 #include "GlobUtils.h"
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanShaderModule.h"
 #include "Vulkan/VulkanPipelineLayout.h"
 #include "Vulkan/VulkanRenderPass.h"
+#include "Vulkan/VulkanFramebuffer.h"
 
 class VulkanGraphicsPipeline final
 {
@@ -21,11 +24,11 @@ public:
 
 private:
     VkDevice& device;
-
+    VkPipeline graphicsPipeline;
+    
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
     std::unique_ptr<VulkanRenderPass> renderPass;
-
-    VkPipeline graphicsPipeline;
+    std::vector<std::unique_ptr<VulkanFramebuffer>> framebuffers;
 };
 
 #endif // VULKANGRAPHICSPIPELINE_H

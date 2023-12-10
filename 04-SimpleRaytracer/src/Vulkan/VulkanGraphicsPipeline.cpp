@@ -83,6 +83,9 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanSwapChain& swapChain) : dev
     pipelineLayout.reset(new VulkanPipelineLayout(device));
     renderPass.reset(new VulkanRenderPass(swapChain));
 
+    for(const auto& imageView : swapChain.getSwapChainImageViews())
+        framebuffers.push_back(std::make_unique<VulkanFramebuffer>(*renderPass, imageView->getImageView()));
+
     VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo {};
     graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     graphicsPipelineCreateInfo.stageCount = 2;
@@ -101,8 +104,6 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanSwapChain& swapChain) : dev
 
     if(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         throw std::runtime_error("Failed to create graphics pipeline.");
-
-    
 }
 
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline()

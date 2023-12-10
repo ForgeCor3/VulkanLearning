@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <memory>
 #include <vector>
 #include <cstdint>
 #include <limits>
@@ -26,6 +27,7 @@ public:
     VkDevice& getDevice();
     VkExtent2D getExtent();
     VkFormat getFormat();
+    std::vector<std::unique_ptr<VulkanImageView>>& getSwapChainImageViews();
 
 private:
     struct SupportDetails
@@ -42,9 +44,7 @@ private:
     uint32_t chooseImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
 
     VkDevice& device;
-
     VkSwapchainKHR swapChain;
-
     std::vector<VkImage> swapChainImages;
     std::vector<std::unique_ptr<VulkanImageView>> swapChainImageViews;
     VkFormat imageFormat;

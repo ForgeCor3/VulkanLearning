@@ -63,6 +63,8 @@ VkExtent2D VulkanSwapChain::getExtent() { return extent; }
 
 VkFormat VulkanSwapChain::getFormat() { return imageFormat; }
 
+std::vector<std::unique_ptr<VulkanImageView>>& VulkanSwapChain::getSwapChainImageViews() { return swapChainImageViews; }
+
 VulkanSwapChain::SupportDetails VulkanSwapChain::querySwapChainSupport(VulkanDevice& device)
 {
     VulkanSwapChain::SupportDetails supportDetails;
