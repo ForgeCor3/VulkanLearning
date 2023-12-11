@@ -5,6 +5,10 @@ project(04-SimpleRaytracer)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
+    src/Vulkan/VulkanSemaphore.cpp
+    src/Vulkan/VulkanFence.cpp
+    src/Vulkan/VulkanCommandPool.cpp
+    src/Vulkan/VulkanCommandBuffer.cpp
     src/Vulkan/VulkanFramebuffer.cpp
     src/Vulkan/VulkanRenderPass.cpp
     src/Vulkan/VulkanPipelineLayout.cpp
