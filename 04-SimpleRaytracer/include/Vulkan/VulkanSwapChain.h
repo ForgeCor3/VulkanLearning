@@ -28,6 +28,7 @@ public:
     VkExtent2D getExtent();
     VkFormat getFormat();
     std::vector<std::unique_ptr<VulkanImageView>>& getSwapChainImageViews();
+    VkSwapchainKHR& getSwapchain();
 
 private:
     struct SupportDetails

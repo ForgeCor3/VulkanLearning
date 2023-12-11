@@ -19,6 +19,8 @@ public:
     VulkanFramebuffer(VulkanRenderPass& renderPass, const VkImageView& imageView);
     ~VulkanFramebuffer();
 
+    VkFramebuffer& getFramebuffer();
+
 private:
     VkDevice& device;
     VkFramebuffer framebuffer;

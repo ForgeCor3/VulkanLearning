@@ -22,6 +22,10 @@ public:
     VulkanGraphicsPipeline(VulkanSwapChain& swapChain);
     ~VulkanGraphicsPipeline();
 
+    VkPipeline& getPipeline();
+    VulkanRenderPass& getVulkanRenderPass();
+    std::vector<std::unique_ptr<VulkanFramebuffer>>& getVulkanFramebuffers();
+
 private:
     VkDevice& device;
     VkPipeline graphicsPipeline;

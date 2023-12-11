@@ -17,6 +17,8 @@ public:
     VulkanCommandPool(const VkDevice& device, const uint32_t queueFamilyIndex);
     ~VulkanCommandPool();
 
+    VkCommandPool& getCommandPool();
+
 private:
     const VkDevice& device;
     VkCommandPool commandPool;

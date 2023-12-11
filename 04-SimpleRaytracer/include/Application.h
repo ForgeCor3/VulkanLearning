@@ -13,6 +13,10 @@
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanGraphicsPipeline.h"
+#include "Vulkan/VulkanCommandPool.h"
+#include "Vulkan/VulkanCommandBuffer.h"
+#include "Vulkan/VulkanSemaphore.h"
+#include "Vulkan/VulkanFence.h"
 
 class Application final
 {
@@ -28,6 +32,9 @@ public:
     void terminate();
 
 private:
+    void drawFrame();
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanInstance> instance;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
@@ -35,6 +42,11 @@ private:
     std::unique_ptr<VulkanSurface> surface;
     std::unique_ptr<VulkanSwapChain> swapChain;
     std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline;
+    std::unique_ptr<VulkanCommandPool> commandPool;
+    std::unique_ptr<VulkanCommandBuffer> commandBuffer;
+    std::unique_ptr<VulkanSemaphore> imageAvailableSemaphore;
+    std::unique_ptr<VulkanSemaphore> renderFinishedSemaphore;
+    std::unique_ptr<VulkanFence> inFlightFence;
 
     std::vector<const char*> validationLayers;
 };

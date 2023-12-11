@@ -12,3 +12,5 @@ VulkanCommandPool::VulkanCommandPool(const VkDevice& device, const uint32_t queu
 }
 
 VulkanCommandPool::~VulkanCommandPool() { vkDestroyCommandPool(device, commandPool, nullptr); }
+
+VkCommandPool& VulkanCommandPool::getCommandPool() { return commandPool; }

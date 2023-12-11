@@ -16,3 +16,5 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanRenderPass& renderPass, const VkImage
 }
 
 VulkanFramebuffer::~VulkanFramebuffer() { vkDestroyFramebuffer(device, framebuffer, nullptr); }
+
+VkFramebuffer& VulkanFramebuffer::getFramebuffer() { return framebuffer; }

@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <stdexcept>
 #include <memory>
 
 #include "GlobUtils.h"
@@ -17,6 +18,10 @@ public:
     VulkanCommandBuffer() = delete;
     VulkanCommandBuffer(VkDevice& device, VkCommandPool& commandPool);
     ~VulkanCommandBuffer();
+
+    VkCommandBuffer& getCommandBuffer();
+
+    void commandBufferBegin(const uint32_t imageIndex);
 
 private:
     VkCommandBuffer commandBuffer;

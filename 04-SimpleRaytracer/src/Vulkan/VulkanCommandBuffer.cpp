@@ -6,9 +6,21 @@ VulkanCommandBuffer::VulkanCommandBuffer(VkDevice& device, VkCommandPool& comman
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.commandPool = commandPool;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandBufferAllocateInfo.commandBufferCount = 1;
 
     if(vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer) != VK_SUCCESS)
         throw std::runtime_error("Failed to allocate command buffer.");
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() {  }
+
+VkCommandBuffer& VulkanCommandBuffer::getCommandBuffer() { return commandBuffer; }
+
+void VulkanCommandBuffer::commandBufferBegin(const uint32_t imageIndex)
+{
+    VkCommandBufferBeginInfo commandBufferBeginInfo {};
+    commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    
+    if(!vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
+        throw std::runtime_error("Failed to begin command buffer.");
+}

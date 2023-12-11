@@ -113,3 +113,9 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
     pipelineLayout.reset();
     renderPass.reset();
 }
+
+VkPipeline& VulkanGraphicsPipeline::getPipeline() { return graphicsPipeline; }
+
+VulkanRenderPass& VulkanGraphicsPipeline::getVulkanRenderPass() { return *renderPass; }
+
+std::vector<std::unique_ptr<VulkanFramebuffer>>& VulkanGraphicsPipeline::getVulkanFramebuffers() { return framebuffers; }
