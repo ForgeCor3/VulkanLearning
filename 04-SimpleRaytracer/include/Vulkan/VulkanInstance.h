@@ -25,7 +25,7 @@ public:
 private:
     void checkValidationLayerSupport(std::vector<const char*>& validationLayers);
 
-    VkInstance instance = VK_NULL_HANDLE;
+    VkInstance instance;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
     GLFWwindow* window;
 };

@@ -16,11 +16,11 @@ VulkanCommandBuffer::~VulkanCommandBuffer() {  }
 
 VkCommandBuffer& VulkanCommandBuffer::getCommandBuffer() { return commandBuffer; }
 
-void VulkanCommandBuffer::commandBufferBegin(const uint32_t imageIndex)
+void VulkanCommandBuffer::commandBufferBegin()
 {
     VkCommandBufferBeginInfo commandBufferBeginInfo {};
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     
-    if(!vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
+    if(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) != VK_SUCCESS)
         throw std::runtime_error("Failed to begin command buffer.");
 }

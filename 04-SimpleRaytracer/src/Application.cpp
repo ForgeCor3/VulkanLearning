@@ -59,11 +59,52 @@ void Application::mainloop()
         drawFrame();
         glfwPollEvents();
     }
+    
+    vkDeviceWaitIdle(device->getDevice());
 }
 
 void Application::drawFrame()
 {
+    vkWaitForFences(device->getDevice(), 1, &inFlightFence->getFence(), VK_TRUE, UINT64_MAX);
+    vkResetFences(device->getDevice(), 1, &inFlightFence->getFence());
+
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(device->getDevice(), swapChain->getSwapchain(), UINT64_MAX, imageAvailableSemaphore->getSemaphore(), VK_NULL_HANDLE, &imageIndex);
+
+    vkResetCommandBuffer(commandBuffer->getCommandBuffer(), 0);
+    commandBuffer->commandBufferBegin();
+    recordCommandBuffer(commandBuffer->getCommandBuffer(), imageIndex);
+    vkEndCommandBuffer(commandBuffer->getCommandBuffer());
     
+    VkSubmitInfo submitInfo {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = { imageAvailableSemaphore->getSemaphore() };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSemaphore signalSemaphores[] = { renderFinishedSemaphore->getSemaphore() };
+
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer->getCommandBuffer();
+
+    if(vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, inFlightFence->getFence()) != VK_SUCCESS)
+        throw std::runtime_error("Failed to submit draw command buffer.");
+
+    VkSwapchainKHR swapChains[] = { swapChain->getSwapchain() };
+
+    VkPresentInfoKHR presentInfo {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
 }
 
 void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)

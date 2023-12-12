@@ -26,18 +26,18 @@ public:
 
     VkDevice& getDevice();
     VkPhysicalDevice& getPhysicalDevice();
-
     VkSurfaceKHR& getSurface();
     GLFWwindow* getWindow();
-
     uint32_t getGraphicsQueueFamilyIndex();
     uint32_t getPresentQueueFamilyIndex();
+    VkQueue& getGraphicsQueue();
+    VkQueue& getPresentQueue();
 
 private:
     std::optional<uint32_t> findQueue(const VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice);
 
     void selectPhysicalDevice(VulkanInstance& instance);
-    VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices);
+    VkPhysicalDevice findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice>& availablePhysicalDevices);
     bool checkDeviceExtensionsSupport(VkPhysicalDevice physicalDevice);
     void setupLogicalDevice();
 

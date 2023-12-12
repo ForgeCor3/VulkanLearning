@@ -12,13 +12,20 @@ VulkanDevice::VulkanDevice(VulkanInstance& instance, VulkanSurface& surface)
 VulkanDevice::~VulkanDevice() { vkDestroyDevice(device, nullptr); }
 
 VkDevice& VulkanDevice::getDevice() { return device; }
+
 VkPhysicalDevice& VulkanDevice::getPhysicalDevice() { return physicalDevice; }
 
 VkSurfaceKHR& VulkanDevice::getSurface() { return surface; }
+
 GLFWwindow* VulkanDevice::getWindow() { return instance->getWindow(); }
 
 uint32_t VulkanDevice::getGraphicsQueueFamilyIndex() { return graphicsQueueFamilyIndex; }
+
 uint32_t VulkanDevice::getPresentQueueFamilyIndex() { return presentQueueFamilyIndex; }
+
+VkQueue& VulkanDevice::getGraphicsQueue() { return graphicsQueue; }
+
+VkQueue& VulkanDevice::getPresentQueue() { return presentQueue; }
 
 std::optional<uint32_t> VulkanDevice::findQueue(const VkQueueFlags queueFlags, const VkPhysicalDevice physicalDevice)
 {
@@ -53,7 +60,7 @@ void VulkanDevice::selectPhysicalDevice(VulkanInstance& instance)
     physicalDevice = findSuitablePhysicalDevice(availablePhysicalDevices);
 }
 
-VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice> availablePhysicalDevices)
+VkPhysicalDevice VulkanDevice::findSuitablePhysicalDevice(const std::vector<VkPhysicalDevice>& availablePhysicalDevices)
 {
     std::multimap<uint32_t, VkPhysicalDevice> physicalDeviceScores;
 

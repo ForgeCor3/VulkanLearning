@@ -35,20 +35,25 @@ private:
     void drawFrame();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
+    std::vector<const char*> validationLayers;
+
     std::unique_ptr<Window> window;
+
     std::unique_ptr<VulkanInstance> instance;
     std::unique_ptr<VulkanDebugUtilsMessenger> debugUtilsMessenger;
+
     std::unique_ptr<VulkanDevice> device;
     std::unique_ptr<VulkanSurface> surface;
+
     std::unique_ptr<VulkanSwapChain> swapChain;
     std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline;
+
     std::unique_ptr<VulkanCommandPool> commandPool;
     std::unique_ptr<VulkanCommandBuffer> commandBuffer;
+
     std::unique_ptr<VulkanSemaphore> imageAvailableSemaphore;
     std::unique_ptr<VulkanSemaphore> renderFinishedSemaphore;
     std::unique_ptr<VulkanFence> inFlightFence;
-
-    std::vector<const char*> validationLayers;
 };
 
 #endif // APPLICATION_H

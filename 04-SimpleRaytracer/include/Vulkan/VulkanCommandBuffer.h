@@ -21,7 +21,7 @@ public:
 
     VkCommandBuffer& getCommandBuffer();
 
-    void commandBufferBegin(const uint32_t imageIndex);
+    void commandBufferBegin();
 
 private:
     VkCommandBuffer commandBuffer;
