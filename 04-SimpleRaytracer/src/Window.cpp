@@ -1,7 +1,11 @@
 #include "Window.h"
 
+void error_callback(int code, const char* err_str) { std::cerr << "GLFW Error [" << code << "]: " << err_str << std::endl; }
+
 Window::Window(const WindowConfig windowConfig)
 {
+    glfwSetErrorCallback(error_callback);
+
     if(!glfwInit())
         throw std::runtime_error("Failed to initialize glfw.");
 

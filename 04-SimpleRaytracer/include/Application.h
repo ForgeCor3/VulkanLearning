@@ -2,7 +2,6 @@
 #define APPLICATION_H
 
 #include <memory>
-#include <iostream>
 #include <vector>
 
 #include "GlobUtils.h"
@@ -35,6 +34,10 @@ private:
     void drawFrame();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
+    void createSwapchain();
+    void destroySwapchain();
+    void recreateSwapchain();
+
     std::vector<const char*> validationLayers;
 
     std::unique_ptr<Window> window;
@@ -49,11 +52,13 @@ private:
     std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline;
 
     std::unique_ptr<VulkanCommandPool> commandPool;
-    std::unique_ptr<VulkanCommandBuffer> commandBuffer;
+    std::vector<std::unique_ptr<VulkanCommandBuffer>> commandBuffers;
 
-    std::unique_ptr<VulkanSemaphore> imageAvailableSemaphore;
-    std::unique_ptr<VulkanSemaphore> renderFinishedSemaphore;
-    std::unique_ptr<VulkanFence> inFlightFence;
+    std::vector<std::unique_ptr<VulkanSemaphore>> imageAvailableSemaphores;
+    std::vector<std::unique_ptr<VulkanSemaphore>> renderFinishedSemaphores;
+    std::vector<std::unique_ptr<VulkanFence>> inFlightFences;
+
+    uint32_t currentFrame;
 };
 
 #endif // APPLICATION_H

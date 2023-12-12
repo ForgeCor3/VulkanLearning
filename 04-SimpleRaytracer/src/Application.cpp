@@ -1,11 +1,7 @@
 #include "Application.h"
 
-void error_callback(int, const char* err_str) { std::cerr << "GLFW Error: " << err_str << std::endl; }
-
 Application::Application(const WindowConfig& windowConfig, bool validationLayersEnabled)
 {
-    glfwSetErrorCallback(error_callback);
-
     validationLayers = validationLayersEnabled ?
         std::vector<const char*>{"VK_LAYER_KHRONOS_validation"} :
         std::vector<const char*>{};
@@ -18,23 +14,16 @@ Application::Application(const WindowConfig& windowConfig, bool validationLayers
 
     surface.reset(new VulkanSurface(instance.get()));
     device.reset(new VulkanDevice(*instance, *surface));
-    swapChain.reset(new VulkanSwapChain(*device));
-    graphicsPipeline.reset(new VulkanGraphicsPipeline(*swapChain));
-    commandPool.reset(new VulkanCommandPool(device->getDevice(), device->getGraphicsQueueFamilyIndex()));
-    commandBuffer.reset(new VulkanCommandBuffer(device->getDevice(), commandPool->getCommandPool()));
-    imageAvailableSemaphore.reset(new VulkanSemaphore(device->getDevice()));
-    renderFinishedSemaphore.reset(new VulkanSemaphore(device->getDevice()));
-    inFlightFence.reset(new VulkanFence(device->getDevice(), true));
+
+    currentFrame = 0;
+
+    createSwapchain();
 }
 
 Application::~Application()
 {
-    imageAvailableSemaphore.reset();
-    renderFinishedSemaphore.reset();
-    inFlightFence.reset();
-    commandPool.reset();
-    graphicsPipeline.reset();
-    swapChain.reset();
+    destroySwapchain();
+
     device.reset();
 
     if(!validationLayers.empty())
@@ -65,23 +54,36 @@ void Application::mainloop()
 
 void Application::drawFrame()
 {
-    vkWaitForFences(device->getDevice(), 1, &inFlightFence->getFence(), VK_TRUE, UINT64_MAX);
-    vkResetFences(device->getDevice(), 1, &inFlightFence->getFence());
+    const VkCommandBuffer commandBuffer = commandBuffers[currentFrame]->getCommandBuffer();
+    const VkSemaphore imageAvailableSemaphore = imageAvailableSemaphores[currentFrame]->getSemaphore();
+    const VkSemaphore renderFinishedSemaphore = renderFinishedSemaphores[currentFrame]->getSemaphore();
+    const VkFence inFlightFence = inFlightFences[currentFrame]->getFence();
+
+    vkWaitForFences(device->getDevice(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device->getDevice(), swapChain->getSwapchain(), UINT64_MAX, imageAvailableSemaphore->getSemaphore(), VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(device->getDevice(), swapChain->getSwapchain(), UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    {
+        recreateSwapchain();
+        return;
+    }
+    else if(result != VK_SUCCESS)
+        throw std::runtime_error("Failed to acquire swap chain image.");
 
-    vkResetCommandBuffer(commandBuffer->getCommandBuffer(), 0);
-    commandBuffer->commandBufferBegin();
-    recordCommandBuffer(commandBuffer->getCommandBuffer(), imageIndex);
-    vkEndCommandBuffer(commandBuffer->getCommandBuffer());
+    vkResetFences(device->getDevice(), 1, &inFlightFence);
+
+    vkResetCommandBuffer(commandBuffer, 0);
+    commandBuffers[currentFrame]->commandBufferBegin();
+    recordCommandBuffer(commandBuffer, imageIndex);
+    vkEndCommandBuffer(commandBuffer);
     
     VkSubmitInfo submitInfo {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { imageAvailableSemaphore->getSemaphore() };
+    VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore signalSemaphores[] = { renderFinishedSemaphore->getSemaphore() };
+    VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
 
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
@@ -89,9 +91,9 @@ void Application::drawFrame()
     submitInfo.pSignalSemaphores = signalSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer->getCommandBuffer();
-
-    if(vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, inFlightFence->getFence()) != VK_SUCCESS)
+    submitInfo.pCommandBuffers = &commandBuffer;
+    
+    if(vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, inFlightFence) != VK_SUCCESS)
         throw std::runtime_error("Failed to submit draw command buffer.");
 
     VkSwapchainKHR swapChains[] = { swapChain->getSwapchain() };
@@ -104,7 +106,16 @@ void Application::drawFrame()
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
+    result = vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+    {
+        recreateSwapchain();
+        return;
+    }
+    else if(result != VK_SUCCESS)
+        throw std::runtime_error("Failed to present swap chain image.");
+    
+    currentFrame = (currentFrame + 1) % commandBuffers.size();
 }
 
 void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -140,4 +151,40 @@ void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     
     vkCmdEndRenderPass(commandBuffer);
+}
+
+void Application::createSwapchain()
+{
+    swapChain.reset(new VulkanSwapChain(*device));
+    graphicsPipeline.reset(new VulkanGraphicsPipeline(*swapChain));
+    commandPool.reset(new VulkanCommandPool(device->getDevice(), device->getGraphicsQueueFamilyIndex()));
+    
+    for(size_t i = 0; i < swapChain->getSwapChainImageViews().size(); ++i)
+    {
+        commandBuffers.push_back(std::make_unique<VulkanCommandBuffer>(device->getDevice(), commandPool->getCommandPool()));
+        imageAvailableSemaphores.push_back(std::make_unique<VulkanSemaphore>(device->getDevice()));
+        renderFinishedSemaphores.push_back(std::make_unique<VulkanSemaphore>(device->getDevice()));
+        inFlightFences.push_back(std::make_unique<VulkanFence>(device->getDevice(), true));
+    }
+}
+
+void Application::destroySwapchain()
+{
+    for(auto& semaphore : imageAvailableSemaphores)
+        semaphore.reset();
+    for(auto& semaphore : renderFinishedSemaphores)
+        semaphore.reset();
+    for(auto& fence : inFlightFences)
+        fence.reset();
+
+    commandPool.reset();
+    graphicsPipeline.reset();
+    swapChain.reset();
+}
+
+void Application::recreateSwapchain()
+{
+    vkDeviceWaitIdle(device->getDevice());
+    destroySwapchain();
+    createSwapchain();
 }

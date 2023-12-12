@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <vector>
+#include <iostream>
 
 #include "WindowConfig.h"
 #include "GlobUtils.h"
