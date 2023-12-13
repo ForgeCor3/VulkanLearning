@@ -16,41 +16,41 @@
 #include "Vulkan/VulkanImageView.h"
 
 class VulkanSwapChain final
-{    
+{
 public:
-    DISABLE_COPY_AND_MOVE(VulkanSwapChain)
+	DISABLE_COPY_AND_MOVE(VulkanSwapChain)
 
-    VulkanSwapChain() = delete;
-    VulkanSwapChain(VulkanDevice& device);
-    ~VulkanSwapChain();
+	VulkanSwapChain() = delete;
+	VulkanSwapChain(VulkanDevice& device);
+	~VulkanSwapChain();
 
-    VkDevice& getDevice();
-    VkExtent2D getExtent();
-    VkFormat getFormat();
-    std::vector<std::unique_ptr<VulkanImageView>>& getSwapChainImageViews();
-    VkSwapchainKHR& getSwapchain();
+	VkDevice&									   getDevice();
+	VkExtent2D									   getExtent();
+	VkFormat									   getFormat();
+	std::vector<std::unique_ptr<VulkanImageView>>& getSwapChainImageViews();
+	VkSwapchainKHR&								   getSwapchain();
 
 private:
-    struct SupportDetails
-    {
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> surfaceFormats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
-    
-    VulkanSwapChain::SupportDetails querySwapChainSupport(VulkanDevice& device);
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities, VulkanDevice& device);
-    uint32_t chooseImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
+	struct SupportDetails
+	{
+		VkSurfaceCapabilitiesKHR		capabilities;
+		std::vector<VkSurfaceFormatKHR> surfaceFormats;
+		std::vector<VkPresentModeKHR>	presentModes;
+	};
 
-    VkDevice& device;
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    std::vector<std::unique_ptr<VulkanImageView>> swapChainImageViews;
-    VkFormat imageFormat;
-    VkExtent2D extent;
-    uint32_t imageCount;
+	VulkanSwapChain::SupportDetails querySwapChainSupport(VulkanDevice& device);
+	VkSurfaceFormatKHR				chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR				chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+	VkExtent2D						chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities, VulkanDevice& device);
+	uint32_t						chooseImageCount(const VkSurfaceCapabilitiesKHR& capabilities);
+
+	VkDevice&									  device;
+	VkSwapchainKHR								  swapChain;
+	std::vector<VkImage>						  swapChainImages;
+	std::vector<std::unique_ptr<VulkanImageView>> swapChainImageViews;
+	VkFormat									  imageFormat;
+	VkExtent2D									  extent;
+	uint32_t									  imageCount;
 };
 
 #endif // VULKANSWAPCHAIN_H

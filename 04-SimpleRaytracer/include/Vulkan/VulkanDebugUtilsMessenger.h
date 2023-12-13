@@ -11,21 +11,21 @@
 class VulkanDebugUtilsMessenger final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanDebugUtilsMessenger)
+	DISABLE_COPY_AND_MOVE(VulkanDebugUtilsMessenger)
 
-    VulkanDebugUtilsMessenger();
-    VulkanDebugUtilsMessenger(VkInstance& instance);
-    ~VulkanDebugUtilsMessenger();
+	VulkanDebugUtilsMessenger();
+	VulkanDebugUtilsMessenger(VkInstance& instance);
+	~VulkanDebugUtilsMessenger();
 
-    void setDebugUtilsMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugUtilsMessengerCreateInfoEXT);
+	void setDebugUtilsMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugUtilsMessengerCreateInfoEXT);
 
 private:
-    VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-        const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-    void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT pDebugMessenger, const VkAllocationCallbacks* pAllocator);
+	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+		const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+	void	 DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT pDebugMessenger, const VkAllocationCallbacks* pAllocator);
 
-    VkInstance* instance;
-    VkDebugUtilsMessengerEXT debugUtilsMessengerEXT = VK_NULL_HANDLE;
+	VkInstance*				 instance;
+	VkDebugUtilsMessengerEXT debugUtilsMessengerEXT = VK_NULL_HANDLE;
 };
 
 #endif // VULKANDEBUGUTILSMESSENGER_H

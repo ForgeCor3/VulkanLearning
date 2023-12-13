@@ -11,17 +11,17 @@
 class VulkanImageView final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanImageView)
+	DISABLE_COPY_AND_MOVE(VulkanImageView)
 
-    VulkanImageView() = delete;
-    VulkanImageView(const VkDevice& device, const VkImage image, const VkFormat imageFormat);
-    ~VulkanImageView();
+	VulkanImageView() = delete;
+	VulkanImageView(const VkDevice& device, const VkImage image, const VkFormat imageFormat);
+	~VulkanImageView();
 
-    VkImageView& getImageView();
+	VkImageView& getImageView();
 
 private:
-    const VkDevice& device;
-    VkImageView imageView;
+	const VkDevice& device;
+	VkImageView		imageView;
 };
 
 #endif // VULKANIMAGEVIEW_H

@@ -11,17 +11,17 @@
 class VulkanPipelineLayout final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanPipelineLayout)
+	DISABLE_COPY_AND_MOVE(VulkanPipelineLayout)
 
-    VulkanPipelineLayout() = delete;
-    VulkanPipelineLayout(VkDevice& device);
-    ~VulkanPipelineLayout();
+	VulkanPipelineLayout() = delete;
+	VulkanPipelineLayout(VkDevice& device);
+	~VulkanPipelineLayout();
 
-    VkPipelineLayout getPipelineLayout();
+	VkPipelineLayout getPipelineLayout();
 
 private:
-    VkDevice& device;
-    VkPipelineLayout pipelineLayout;
+	VkDevice&		 device;
+	VkPipelineLayout pipelineLayout;
 };
 
-#endif //VULKANPIPELINELAYOUT_H
+#endif // VULKANPIPELINELAYOUT_H

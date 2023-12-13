@@ -12,18 +12,17 @@
 class VulkanSurface final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanSurface)
+	DISABLE_COPY_AND_MOVE(VulkanSurface)
 
-    VulkanSurface() = delete;
-    VulkanSurface(VulkanInstance* instance);
-    ~VulkanSurface();
+	VulkanSurface() = delete;
+	VulkanSurface(VulkanInstance* instance);
+	~VulkanSurface();
 
-    const VkSurfaceKHR getSurface();
+	const VkSurfaceKHR getSurface();
 
 private:
-    VkInstance instance;
-    VkSurfaceKHR surface;
+	VkInstance	 instance;
+	VkSurfaceKHR surface;
 };
-
 
 #endif // VULKANSURFACE_H

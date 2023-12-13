@@ -13,18 +13,18 @@
 class VulkanCommandBuffer final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanCommandBuffer)
+	DISABLE_COPY_AND_MOVE(VulkanCommandBuffer)
 
-    VulkanCommandBuffer() = delete;
-    VulkanCommandBuffer(VkDevice& device, VkCommandPool& commandPool);
-    ~VulkanCommandBuffer();
+	VulkanCommandBuffer() = delete;
+	VulkanCommandBuffer(VkDevice& device, VkCommandPool& commandPool);
+	~VulkanCommandBuffer();
 
-    VkCommandBuffer& getCommandBuffer();
+	VkCommandBuffer& getCommandBuffer();
 
-    void commandBufferBegin();
+	void commandBufferBegin();
 
 private:
-    VkCommandBuffer commandBuffer;
+	VkCommandBuffer commandBuffer;
 };
 
 #endif // VULKANCOMMANDBUFFER_H

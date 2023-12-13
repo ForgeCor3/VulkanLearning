@@ -11,17 +11,17 @@
 class VulkanCommandPool final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanCommandPool)
+	DISABLE_COPY_AND_MOVE(VulkanCommandPool)
 
-    VulkanCommandPool() = delete;
-    VulkanCommandPool(const VkDevice& device, const uint32_t queueFamilyIndex);
-    ~VulkanCommandPool();
+	VulkanCommandPool() = delete;
+	VulkanCommandPool(const VkDevice& device, const uint32_t queueFamilyIndex);
+	~VulkanCommandPool();
 
-    VkCommandPool& getCommandPool();
+	VkCommandPool& getCommandPool();
 
 private:
-    const VkDevice& device;
-    VkCommandPool commandPool;
+	const VkDevice& device;
+	VkCommandPool	commandPool;
 };
 
 #endif // VULKANCOMMANDPOOL_H

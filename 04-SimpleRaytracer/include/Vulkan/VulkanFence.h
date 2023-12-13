@@ -11,17 +11,17 @@
 class VulkanFence final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanFence)
+	DISABLE_COPY_AND_MOVE(VulkanFence)
 
-    VulkanFence() = delete;
-    VulkanFence(const VkDevice& device, const bool isSignaled);
-    ~VulkanFence();
+	VulkanFence() = delete;
+	VulkanFence(const VkDevice& device, const bool isSignaled);
+	~VulkanFence();
 
-    VkFence& getFence();
+	VkFence& getFence();
 
 private:
-    const VkDevice& device;
-    VkFence fence;
+	const VkDevice& device;
+	VkFence			fence;
 };
 
 #endif // VULKANFENCE_H

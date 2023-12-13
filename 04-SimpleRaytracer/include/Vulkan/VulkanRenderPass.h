@@ -10,18 +10,18 @@
 class VulkanRenderPass final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanRenderPass)
+	DISABLE_COPY_AND_MOVE(VulkanRenderPass)
 
-    VulkanRenderPass() = delete;
-    VulkanRenderPass(VulkanSwapChain& swapChain);
-    ~VulkanRenderPass();
+	VulkanRenderPass() = delete;
+	VulkanRenderPass(VulkanSwapChain& swapChain);
+	~VulkanRenderPass();
 
-    VkRenderPass& getRenderPass();
-    VulkanSwapChain& getSwapChain();
+	VkRenderPass&	 getRenderPass();
+	VulkanSwapChain& getSwapChain();
 
 private:
-    VulkanSwapChain& swapChain;
-    VkRenderPass renderPass;
+	VulkanSwapChain& swapChain;
+	VkRenderPass	 renderPass;
 };
 
-#endif //VULKANRENDERPASS_H
+#endif // VULKANRENDERPASS_H

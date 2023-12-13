@@ -11,17 +11,17 @@
 class VulkanSemaphore final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanSemaphore)
+	DISABLE_COPY_AND_MOVE(VulkanSemaphore)
 
-    VulkanSemaphore() = delete;
-    VulkanSemaphore(const VkDevice& device);
-    ~VulkanSemaphore();
+	VulkanSemaphore() = delete;
+	VulkanSemaphore(const VkDevice& device);
+	~VulkanSemaphore();
 
-    VkSemaphore& getSemaphore();
+	VkSemaphore& getSemaphore();
 
 private:
-    const VkDevice& device;
-    VkSemaphore semaphore;
+	const VkDevice& device;
+	VkSemaphore		semaphore;
 };
 
-#endif //VULKANSEMAPHORE_H
+#endif // VULKANSEMAPHORE_H

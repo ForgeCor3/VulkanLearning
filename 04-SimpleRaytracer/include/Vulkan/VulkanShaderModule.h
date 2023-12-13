@@ -15,19 +15,19 @@
 class VulkanShaderModule final
 {
 public:
-    DISABLE_COPY_AND_MOVE(VulkanShaderModule)
-    
-    VulkanShaderModule() = delete;
-    VulkanShaderModule(const VkDevice& device, const std::string filePath);
-    ~VulkanShaderModule();
+	DISABLE_COPY_AND_MOVE(VulkanShaderModule)
 
-    VkPipelineShaderStageCreateInfo createPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage) const;
+	VulkanShaderModule() = delete;
+	VulkanShaderModule(const VkDevice& device, const std::string filePath);
+	~VulkanShaderModule();
+
+	VkPipelineShaderStageCreateInfo createPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage) const;
 
 private:
-    std::vector<char> readFile(std::string filePath);
+	std::vector<char> readFile(std::string filePath);
 
-    const VkDevice& device;
-    VkShaderModule shaderModule;
+	const VkDevice& device;
+	VkShaderModule	shaderModule;
 };
 
 #endif // VULKANSHADERMODULE_H
