@@ -170,12 +170,10 @@ void Application::createSwapchain()
 
 void Application::destroySwapchain()
 {
-    for(auto& semaphore : imageAvailableSemaphores)
-        semaphore.reset();
-    for(auto& semaphore : renderFinishedSemaphores)
-        semaphore.reset();
-    for(auto& fence : inFlightFences)
-        fence.reset();
+    imageAvailableSemaphores.clear();
+    renderFinishedSemaphores.clear();
+    inFlightFences.clear();
+    commandBuffers.clear();
 
     commandPool.reset();
     graphicsPipeline.reset();
